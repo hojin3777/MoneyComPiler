@@ -224,3 +224,5 @@ test_image/
 dist-electron/
 .github/
 pororo_easyocr_main/
+node_modules/
+python-embed/
