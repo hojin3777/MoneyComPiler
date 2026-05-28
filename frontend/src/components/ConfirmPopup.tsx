@@ -66,8 +66,8 @@ const ConfirmPopup: React.FC<ConfirmPopupProps> = ({
   };
 
   return (
-    <div className="popup-overlay">
-      <div className="popup-box">
+    <div className="popup-overlay" onClick={(e) => e.stopPropagation()}>
+      <div className="popup-box" onClick={(e) => e.stopPropagation()}>
         {title && type !== 'destructive' && (
           <div className='popup-header-general'>
             <h4>{title}</h4>

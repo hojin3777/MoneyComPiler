@@ -1,29 +1,95 @@
 import sqlite3
 import os
 from pathlib import Path
+import shutil
+
+APP_DIR = Path.home() / '.moneyComPiler'
+DATA_PATH_DB = APP_DIR / 'data_path.db'
+DEFAULT_DATA_PATH = APP_DIR
+MAIN_DB_NAME = 'moneyComPiler.db'
+
+# ****** DB 초기화 ******
+def _ensure_app_dir():
+    APP_DIR.mkdir(parents=True, exist_ok=True)
+
+def init_data_path_db():
+    """데이터 경로 DB 초기화 및 기본값 설정"""
+    _ensure_app_dir()
+    conn = sqlite3.connect(str(DATA_PATH_DB))
+    cursor = conn.cursor()
+    
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS data_path (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    """)
+    # 기본값이 없으면 저장
+    cur = conn.execute("SELECT value FROM data_path WHERE key = 'data_path'")
+    row = cur.fetchone()
+    if not row:
+        conn.execute(
+            "INSERT INTO data_path (key, value) VALUES (?, ?)",
+            ('data_path', str(DEFAULT_DATA_PATH))
+        )
+    conn.commit()
+    conn.close()
+
 
 # ****** DB 연결 관리 ******
-def get_db_path():
-    """사용자 홈 디렉토리에 DB 경로 반환"""
-    user_home = Path.home()
-    app_dir = user_home / '.customMydataService'
-    
-    if not app_dir.exists():
-        app_dir.mkdir(parents=True, exist_ok=True)
-        print(f"DB 폴더 생성: {app_dir}")
-    
-    db_path = app_dir / 'mydata.db'
-    print(f"사용 중인 DB 경로: {db_path}")
-    
-    # ✨ DB 파일 존재 여부 확인
-    if db_path.exists():
-        print(f"DB 파일 존재 (크기: {db_path.stat().st_size / 1024:.2f} KB)")
-    else:
-        print(f"DB 파일 없음 - 새로 생성됨")
-    
-    return str(db_path)
+def get_data_path():
+    init_data_path_db()
+    conn = sqlite3.connect(str(DATA_PATH_DB))
+    cur = conn.execute("SELECT value FROM data_path WHERE key = 'data_path'")
+    row = cur.fetchone()
+    conn.close()
+    return row[0] if row else str(DEFAULT_DATA_PATH)
 
-def get_connection():
+def set_data_path(path_value: str):
+    init_data_path_db()
+    conn = sqlite3.connect(str(DATA_PATH_DB))
+    conn.execute("""
+        INSERT INTO data_path (key, value) VALUES (?, ?)
+        ON CONFLICT(key) DO UPDATE SET value=excluded.value
+    """, ('data_path', path_value))
+    conn.commit()
+    conn.close()
+
+def get_db_path():
+    app_data_dir = get_app_data_dir()
+    app_data_dir.mkdir(parents=True, exist_ok=True)
+    return str(app_data_dir / MAIN_DB_NAME)
+
+def get_app_data_dir(base_path=None):
+    base_dir = Path(base_path or get_data_path())
+    return base_dir / 'moneyComPiler'
+
+def get_main_db_path_for_base(base_path):
+    app_dir = get_app_data_dir(base_path)
+    return app_dir / MAIN_DB_NAME
+
+def move_database(old_base, new_base, force=False):
+    src_db = get_main_db_path_for_base(old_base)
+    dst_db = get_main_db_path_for_base(new_base)
+
+    if not src_db.exists():
+        return False, "source_db_missing"
+
+    if dst_db.exists():
+        if not force:
+            return False, "dest_db_exists"
+        dst_db.unlink()  # 기존 DB 삭제 (주의: 데이터 손실 가능)
+
+    dst_db.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(src_db), str(dst_db))
+
+    old_app_dir = get_app_data_dir(old_base)
+    if old_app_dir.exists() and not any(old_app_dir.iterdir()):
+        old_app_dir.rmdir()  # 빈 디렉토리 삭제
+    return True, None
+
+
+def get_db_connection():
     """DB 연결 반환"""
     db_path = get_db_path()
     
@@ -36,18 +102,9 @@ def get_connection():
         print(f"DB 연결 실패: {e}")
         raise
 
-# 데이터베이스 파일 경로 (사용자의 홈 디렉토리에 저장하여 안전하게 관리)
-# DB_FOLDER = os.path.join(os.path.expanduser('~'), '.customMydataService')
-# os.makedirs(DB_FOLDER, exist_ok=True)
-# DB_PATH = os.path.join(DB_FOLDER, 'mydata.db')
 
-def get_db_connection():
-    return get_connection()
-    # """데이터베이스 연결 객체를 반환합니다."""
-    # conn = sqlite3.connect(DB_PATH)
-    # conn.execute("PRAGMA foreign_keys = ON")  # 외래 키 제약 조건 활성화
-    # conn.row_factory = sqlite3.Row # 컬럼명으로 접근 가능하게 설정
-    # return conn
+
+
 
 def init_db():
     """데이터베이스와 테이블들을 생성합니다."""

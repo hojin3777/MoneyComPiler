@@ -87,32 +87,17 @@ print(f"IS_PACKAGED: {IS_PACKAGED}")
 print(f"RESOURCE_PATH: {RESOURCE_PATH}")
 
 # ****** DB 폴더 경로 설정 ******
-DB_FOLDER = str(Path.home() / '.customMydataService')  # DB_FOLDER 정의
+DB_FOLDER = database.get_data_path()  # DB_FOLDER 정의
 os.makedirs(DB_FOLDER, exist_ok=True)
 
 # ****** 업로드 폴더 설정 ******
-UPLOAD_FOLDER = os.path.join(DB_FOLDER, 'uploads')
+UPLOAD_ROOT = str(Path.home() / '.moneyComPiler' / 'uploads')
+UPLOAD_FOLDER = os.path.join(UPLOAD_ROOT)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# ****** DB 경로 설정 ******
-def get_db_path():
-    """사용자 홈 디렉토리에 DB 경로 반환"""
-    user_home = Path.home()
-    app_dir = user_home / '.customMydataService'
-    
-    # 폴더가 없으면 생성
-    if not app_dir.exists():
-        app_dir.mkdir(parents=True, exist_ok=True)
-        print(f"Created app directory: {app_dir}")
-    
-    db_path = app_dir / 'mydata.db'
-    print(f"Database path: {db_path}")
-    
-    return str(db_path)
-
 # DB 경로 전역 변수
-DB_PATH = get_db_path()
+DB_PATH = database.get_db_path()
 
 # ****** 리소스 경로 가져오기 ******
 def get_resource_path(relative_path):
@@ -127,7 +112,7 @@ def get_resource_path(relative_path):
         base_path = os.path.dirname(os.path.abspath(__file__))
     
     full_path = os.path.join(base_path, relative_path)
-    print(f"🔍 Resource path for '{relative_path}': {full_path}")
+    print(f"Resource path for '{relative_path}': {full_path}")
     return full_path
 
 # ****** 모델 경로 설정 ******
@@ -431,6 +416,43 @@ def manage_consumption_pattern_settings():
 
 
 
+
+# -------------------- 설정 API -------------------
+@app.route('/api/settings/data-path', methods=['GET'])
+def get_data_path():
+    return jsonify({"path": database.get_data_path()})
+
+@app.route('/api/settings/data-path', methods=['POST'])
+def set_data_path():
+    data = request.get_json()
+    if not data or 'path' not in data:
+        return jsonify({"error": "path is required"}), 400
+    database.set_data_path(data['path'])
+    return jsonify({"message": "saved"})
+
+@app.route('/api/settings/data-path/move', methods=['POST'])
+def move_data_path():
+    data = request.get_json()
+    if not data or 'path' not in data:
+        return jsonify({"error": "path is required"}), 400
+
+    new_base = data['path']
+    old_base = data.get('fromPath')
+    force = bool(data.get('force'))
+
+    if not old_base:
+        return jsonify({"error": "fromPath is required"}), 400
+
+    ok, err = database.move_database(old_base, new_base, force=force)
+    if not ok:
+        return jsonify({"error": err}), 400
+    
+    database.set_data_path(new_base) # move 성공한 경우에만 data_path 저장
+    return jsonify({"message": "moved", "restart_required": True})
+
+
+
+
 # ------------------- 거래내역 API -------------------
 @app.route('/api/transactions', methods=['GET', 'POST'])
 def manage_transactions():
@@ -526,6 +548,8 @@ def initialize_defaults():
         return jsonify({"error": str(e)}), 500
 
 
+
+
 # ------------------- 카테고리 API -------------------
 @app.route('/api/categories', methods=['GET', 'POST'])
 def manage_categories():
@@ -548,6 +572,9 @@ def get_category_usage():
         return jsonify({"in_use": in_use})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+
 
 # ------------------- 계좌 API -------------------
 @app.route('/api/accounts', methods=['GET', 'POST'])

@@ -226,3 +226,5 @@ dist-electron/
 pororo_easyocr_main/
 node_modules/
 python-embed/
+mydata.db
+data_path.db

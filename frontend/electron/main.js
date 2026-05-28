@@ -75,7 +75,7 @@ function resolveDevPythonExecutable() {
 // resolveBackendScriptPath: backend/app.py의 실제 경로를 계산합니다.
 function resolveBackendScriptPath() {
     if (!app.isPackaged) {
-        return path.resolve(__dirname, '..', '..', '..', 'customMydataService', 'backend', 'app.py');
+        return path.resolve(__dirname, '..', '..', '..', 'moneyComPiler', 'backend', 'app.py');
     }
 
     return path.join(process.resourcesPath, 'backend', 'app.py');
@@ -127,7 +127,7 @@ function resolveAppIconPath() {
 function startPythonBackend() {
     const isDev = !app.isPackaged;
 
-    const logDir = path.join(require('os').homedir(), '.customMydataService', 'logs');
+    const logDir = path.join(require('os').homedir(), '.moneyComPiler', 'logs');
     if (!fs.existsSync(logDir)) {
         fs.mkdirSync(logDir, { recursive: true });
     }
@@ -191,6 +191,10 @@ function startPythonBackend() {
                 PYTHONDONTWRITEBYTECODE: '1',
                 PYTHONUTF8: '1',
                 PYTHONIOENCODING: 'utf-8',
+                PYTHONPATH: [
+                  path.resolve(__dirname, '..', '..', '..', 'moneyComPiler', 'pororo_easyocr_main'),
+                  process.env.PYTHONPATH || '',
+                ].filter(Boolean).join(path.delimiter),
             }
             : {
                 PYTHONHOME: pythonHome,
@@ -386,5 +390,10 @@ ipcMain.handle('select-directory', async () => {
 });
 
 ipcMain.handle('get-default-data-path', async () => {
-  return path.join(os.homedir(), '.customMydataService');
+  return path.join(os.homedir(), '.moneyComPiler');
+});
+
+ipcMain.handle('app-relaunch', async () => {
+  app.relaunch();
+  app.exit(0);
 });

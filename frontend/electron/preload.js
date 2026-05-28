@@ -8,4 +8,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
   selectDirectory: () => ipcRenderer.invoke('select-directory'),
   getDefaultDataPath: () => ipcRenderer.invoke('get-default-data-path'),  
+  relaunch: () => ipcRenderer.invoke('app-relaunch'),
 });

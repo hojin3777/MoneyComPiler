@@ -48,7 +48,7 @@ const TitleBar: React.FC = () => {
               }}
             />
           )}
-          <span>Personalized MyData Service</span>
+          <span>MoneyComPiler</span>
         </div>
       </div>
       

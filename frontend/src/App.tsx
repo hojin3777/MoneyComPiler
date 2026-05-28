@@ -52,7 +52,7 @@ const AppContent = () => {
         <div className={`sidebar-container ${isSidebarOpen ? 'open' : ''}`} onMouseLeave={closeSidebar}>
           <div className={`sidebar-wrapper ${isSidebarOpen ? 'open' : ''}`}>
             <aside className="sidebar">
-              <div className="sidebar-header"><h2>Custom MyData</h2></div>
+              <div className="sidebar-header"><h2>MoneyComPiler</h2></div>
               <nav className="sidebar-nav">
                 <ul>
                   <li><GuardedNavLink to="/dashboard">Dashboard</GuardedNavLink></li>
