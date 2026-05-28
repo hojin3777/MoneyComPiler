@@ -1,0 +1,93 @@
+.monthly-trend-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.monthly-trend-chart {
+  flex: 1;
+  min-height: 0;
+}
+
+.monthly-trend-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.no-data-message {
+  text-align: center;
+  padding: 40px;
+  color: var(--color-text-secondary);
+}
+
+.dashboard-card .recharts-legend-wrapper {
+  bottom: 10px !important; /* 범례를 차트와 더 가깝게 조정 */
+}
+
+/* .custom-tooltip-trend {
+  background-color: var(--color-bg-content);
+  opacity: 0.97;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px var(--color-bg-overlay-light);
+}
+.custom-tooltip-trend .label {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+}
+.custom-tooltip-trend p{
+  margin: 0;
+  padding: 2px 0;
+} */
+
+.custom-tooltip-trend {
+  background-color: var(--color-bg-content);
+  opacity: 0.98;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0px 12px 8px 12px;
+  box-shadow: 0 2px 8px var(--color-bg-overlay-light);
+  font-size: 16px;
+  width: 220px;
+}
+
+.tooltip-label-trend {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+
+}
+
+.tooltip-section-trend {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+.tooltip-section-trend:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.tooltip-item-trend {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  padding: 0; /* 기존 p 태그의 기본 마진/패딩 제거 */
+}
+
+.tooltip-item-trend.sub-item {
+  color: var(--color-text-secondary);
+}
+
+.tooltip-item-trend.income span:first-child { color: var(--color-accent-blue); font-weight: 500; }
+.tooltip-item-trend.expense span:first-child { color: var(--color-accent-red); font-weight: 500; }
+.tooltip-item-trend.surplus span:first-child { color: var(--color-accent-positive); font-weight: 500; }
+.tooltip-item-trend.deficit span:first-child { color: var(--color-accent-warning); font-weight: 500; }

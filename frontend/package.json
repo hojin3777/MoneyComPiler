@@ -1,0 +1,119 @@
+{
+  "name": "custom-mydata-service",
+  "private": true,
+  "version": "0.1.0",
+  "main": "electron/main.js",
+  "homepage": "./",
+
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "pack:python": "node scripts/package-python.mjs",
+    "electron:dev": "concurrently --kill-others \"cross-env BROWSER=none CUSTOMMYDATA_PYTHON=/opt/miniconda3/envs/custommydata-mac/bin/python npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "npm run pack:python && npm run build && electron-builder",
+    "electron:build:mac": "npm run pack:python && npm run build && electron-builder --mac --arm64",
+    "electron:build:win": "npm run build && electron-builder --win --x64"
+  },
+  "build": {
+    "appId": "com.workaholiclab.customMydata",
+    "productName": "Personalized MyData Service",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "mac": {
+      "hardenedRuntime": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "icon": "public/icon.icns",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "public/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "extraResources": [
+      {
+        "from": "dist/icon.icns",
+        "to": "icon.icns"
+      },
+      {
+        "from": "public/icon.ico",
+        "to": "icon.ico"
+      },
+      {
+        "from": "python-embed",
+        "to": "python",
+        "filter": ["**/*", "!**/__pycache__", "!**/*.pyc", "!**/*.pyo"]
+      },
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": ["**/*", "!**/__pycache__", "!**/*.pyc", "!dist", "!build"]
+      },
+      {
+        "from": "../../pororo_easyocr_main",
+        "to": "pororo_easyocr_main"
+      },
+      {
+        "from": "../models",
+        "to": "models"
+      }
+    ]
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/modifiers": "^9.0.0",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@types/react-datepicker": "^6.2.0",
+    "@types/recharts": "^1.8.29",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
+    "rc-slider": "^11.1.9",
+    "react": "^19.1.1",
+    "react-datepicker": "^8.7.0",
+    "react-dom": "^19.1.1",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.8.2",
+    "recharts": "^3.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@types/file-saver": "^2.0.7",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^38.2.2",
+    "electron-builder": "^26.0.12",
+    "electron-is-dev": "^3.0.1",
+    "eslint": "^9.33.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.39.1",
+    "vite": "^7.1.2",
+    "wait-on": "^9.0.1"
+  }
+}

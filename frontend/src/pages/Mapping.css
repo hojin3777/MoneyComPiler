@@ -1,0 +1,59 @@
+@import '../components/ConfirmPopup.css';
+.mapping-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.mapping-page {
+  display: flex;
+  height: calc(100vh - 50px); /* 헤더 높이를 뺀 전체 높이 */
+  padding: 5px;
+  gap: 20px;
+  overflow: hidden;
+}
+
+.mapping-left-panel {
+  flex: 7; /* 왼쪽 패널이 더 넓게 */
+  background-color: var(--color-bg-content);
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  overflow-y: auto;
+  padding: 0;
+}
+.mapping-right-panel {
+  flex: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.placeholder-section {
+  background-color: var(--color-bg-content);
+  border-radius: 4px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.placeholder-section h3 {
+  margin-top: 0;
+  color: var(--color-text-header);
+}
+
+/* 스크롤바 스타일 */
+/* .mapping-left-panel::-webkit-scrollbar {
+  width: 8px;
+}
+.mapping-left-panel::-webkit-scrollbar-track {
+  background: #2d3748;
+  border-radius: 4px;
+}
+.mapping-left-panel::-webkit-scrollbar-thumb {
+  background-color: #4a5568;
+  border-radius: 4px;
+} */

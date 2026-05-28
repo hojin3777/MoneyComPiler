@@ -1,0 +1,263 @@
+.monthly-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-header {
+  flex-shrink: 0;
+}
+.main-content{
+  padding-bottom: 12px;
+  padding-right: 14px;
+}
+
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.monthly-page .page-title h1 {
+  margin: 0;
+  font-size: 24px;
+  color: var(--color-text-header);
+  font-weight: 700;
+}
+
+.month-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.month-selector .date-part {
+  padding: 6px 12px;
+  margin-left: 8px;
+  border-radius: 6px;
+  background-color: var(--color-bg-header);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-width: 60px;
+  text-align: center;
+}
+.month-selector .date-part.year{
+  padding: 6px 24px;
+}
+
+.month-selector .date-part:hover {
+  background-color: var(--color-bg-content);
+  color: var(--color-text-header);
+}
+
+.month-selector .separator {
+  color: var(--color-text-primary);
+}
+
+.monthly-page .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.monthly-page .status-text {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.content-area {
+  flex-grow: 1;
+  overflow: hidden;
+  display: flex;
+}
+
+.calendar-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.calendar-header-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  flex-shrink: 0;
+  padding-bottom: 4px; /* 바디와 푸터 사이 간격 */
+  padding-right: 10px;
+}
+
+.calendar-body-scroll-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  scrollbar-gutter: stable; /* 스크롤바 공간 항상 확보 */
+}
+
+.calendar-body-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 160px; /* 셀 높이 고정 */
+  gap: 4px;
+}
+
+.calendar-header {
+  background-color: var(--color-bg-header);
+  color: var(--color-text-header);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  font-size: 18px;
+  border-radius: 4px;
+}
+
+.calendar-cell {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  border-radius: 4px;
+  border: 1px solid var(--color-border)
+}
+
+.calendar-cell.has-data .day-header {
+  cursor: pointer;
+}
+.calendar-cell.has-data .day-header:hover {
+  background-color: var(--color-bg-content-hover);
+}
+
+.calendar-cell.not-current-month .day-header,
+.calendar-cell.not-current-month .day-body,
+.calendar-cell.not-current-month .day-footer {
+  background-color: var(--color-bg-app);
+}
+.calendar-body-grid .calendar-cell.not-current-month .day-number {
+  opacity: 0.5;
+}
+
+.day-header{
+  padding: 2px;
+  text-align: center;
+  background-color: var(--color-bg-content);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  border-bottom: 1px dashed var(--color-border);
+  transition: background-color 0.2s ease;
+}
+
+.day-number {
+  font-weight: bold;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  padding: 2px 2px;
+  border-radius: 4px;
+}
+
+.day-number.today {
+  border: 1px solid var(--color-highlight-5-transparent5);
+}
+
+/* 일요일은 빨간색, 토요일은 파란색 */
+.calendar-header-grid .calendar-header:first-child,
+.calendar-body-grid .calendar-cell:nth-child(7n + 1) .day-number {
+  color: var(--color-accent-red);
+}
+
+.calendar-header-grid .calendar-header:nth-child(7),
+.calendar-body-grid .calendar-cell:nth-child(7n) .day-number {
+  color: var(--color-accent-blue);
+}
+
+
+.day-body{
+  flex-grow: 1;
+  overflow: hidden;
+  background-color: var(--color-bg-content);
+  padding: 4px;
+  display: flex;
+}
+
+.transactions-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  padding: 0 4px;
+}
+
+/* 스크롤바 스타일 */
+.transactions-list::-webkit-scrollbar {
+  width: 3px;
+}
+
+.transactions-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.transactions-list::-webkit-scrollbar-thumb {
+  background: var(--color-interactive-hover);
+  border-radius: 3px;
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.transaction-item .merchant {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text-secondary);
+}
+
+.transaction-item .amount {
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.transaction-item .amount.income {
+  color: var(--color-accent-red);
+}
+
+.transaction-item .amount.expense {
+  color: var(--color-accent-blue);
+}
+
+.day-footer{
+  background-color: var(--color-bg-content);
+  flex-shrink: 0;
+}
+
+.daily-total {
+  padding: 2px 8px 4px 8px;
+  border-top: 1px dashed var(--color-border);
+  text-align: right;
+  font-weight: bold;
+  color: var(--color-accent-blue);
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.daily-total.empty-total {
+  color: var(--color-text-primary);
+  justify-content: flex-end;
+}
+
+.transaction-count {
+  font-weight: bold;
+  color: var(--color-text-primary);
+}

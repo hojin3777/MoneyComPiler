@@ -1,0 +1,74 @@
+.floating-select-root {
+  position: fixed;
+  z-index: 1000;
+  min-width: 160px;
+  border-radius: 8px;
+  background: var(--color-bg-content);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: 0 4px 12px var(--color-bg-overlay-medium);
+  padding: 1px;
+  box-sizing: border-box;
+  will-change: transform, opacity;
+}
+
+.floating-select-list {
+  max-height: calc(36px * 8);
+  overflow-y: auto;
+  border-radius: 6px;
+  background: transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.floating-select-item {
+  height: 36px;
+  line-height: 36px;
+  padding: 0 14px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.floating-select-item:hover {
+  background: var(--color-bg-inset);
+  color: var(--color-text-header);
+}
+
+.floating-select-item.selected {
+  border: 1px solid var(--color-border-interactive);
+  border-radius: 4px;
+  /* 테두리에 맞게 둥근 모서리 추가 */
+  box-sizing: border-box;
+  /* 테두리가 크기에 영향을 주도록 설정 */
+}
+
+.floating-select-item.disabled {
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+.floating-select-item.unrecommended {
+  color: var(--color-text-secondary);
+}
+
+.floating-select-root:focus-within {
+  outline: none;
+  border: 2px solid var(--color-border-interactive);
+}
+
+/* 반응형/작은 너비 보정 */
+@media (max-width: 520px) {
+  .floating-select-root {
+    left: 8px !important;
+    right: 8px !important;
+    min-width: auto;
+  }
+
+  .floating-select-item {
+    font-size: 14px;
+  }
+}

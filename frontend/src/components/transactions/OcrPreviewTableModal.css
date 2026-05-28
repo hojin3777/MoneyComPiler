@@ -1,0 +1,376 @@
+/* 팝업 전체 오버레이 */
+.ocr-preview-modal-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--color-bg-overlay, rgba(0, 0, 0, 0.75));
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ocr-preview-modal {
+  background: var(--color-bg-content);
+  /* 2. 변수 수정: --color-bg-primary -> --color-bg-content */
+  border-radius: 12px;
+  border: 1.5px solid var(--color-border);
+  box-shadow: 0 8px 32px var(--color-bg-overlay-light);
+  width: 90vw;
+  max-width: 1200px;
+  min-height: 320px;
+  max-height: 80vh;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* 헤더 */
+.ocr-preview-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+/* 1. 모달 툴바 스타일 추가 (Transactions.css와 유사) */
+.ocr-modal-toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.ocr-modal-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: var(--color-bg-inset);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.ocr-modal-toolbar button:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.ocr-modal-toolbar button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ocr-preview-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--color-text-header);
+  letter-spacing: -0.5px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: max-content;
+
+}
+
+.ocr-preview-close {
+  position: static;
+  right: -8px;
+  top: 50%;
+  transform: none;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+/* 테이블 영역 */
+.ocr-preview-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  /* 가로/세로 스크롤 모두 자동 */
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.ocr-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ocr-preview-table th,
+.ocr-preview-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  white-space: nowrap;
+  font-size: 0.95em;
+  text-align: left;
+  /* 3. 모든 셀 기본 좌측 정렬 */
+}
+
+.ocr-preview-table th:last-child,
+.ocr-preview-table td:last-child {
+  border-right: none;
+}
+
+.ocr-preview-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ocr-preview-table th {
+  background-color: var(--color-bg-header);
+  /* 2. 변수 수정: --color-bg-content -> --color-bg-header */
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  text-align: center;
+  /* 3. 헤더만 중앙 정렬 */
+}
+
+/* 3. 특정 열 정렬 재정의 */
+.ocr-preview-table td.align-center {
+  text-align: center;
+}
+
+.ocr-preview-table td.align-right,
+.ocr-preview-table th.align-right {
+  text-align: right;
+}
+
+/* 1. 파일명 셀 스타일 추가 */
+.ocr-preview-table td.filename-cell {
+  text-decoration: underline;
+  cursor: pointer;
+  color: var(--color-text-link);
+}
+
+.ocr-preview-table td.filename-cell:hover {
+  color: var(--color-highlight-5);
+}
+
+.amount-expense {
+  color: var(--color-accent-blue);
+}
+
+.amount-income {
+  color: var(--color-accent-red);
+  font-weight: 500;
+}
+
+@keyframes highlight-error-animation {
+  0% {
+    background-color: var(--color-highlight-3-transparent9);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+.highlight-error {
+  animation: highlight-error-animation 3s ease-out;
+}
+
+@keyframes highlight-sync-animation {
+  0% {
+    background-color: var(--color-highlight-5-transparent5);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+.highlight-sync {
+  animation: highlight-sync-animation 3s ease-out;
+}
+
+.placeholder {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+/* 푸터 */
+.ocr-preview-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* 2. 알림 스타일 수정 및 추가 */
+.ocr-preview-notification {
+  padding: 8px 18px;
+  /* 버튼과 동일한 패딩 적용 */
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 500;
+  animation: fadeInOut 4s ease-in-out;
+  display: flex;
+  /* 내부 텍스트 중앙 정렬을 위해 */
+  align-items: center;
+  justify-content: center;
+  white-space: pre-wrap;
+}
+
+.ocr-preview-notification.info {
+  background-color: var(--color-highlight-5-transparent25);
+  color: var(--color-text-header);
+}
+
+.ocr-preview-notification.error {
+  background-color: var(--color-highlight-2-transparent25);
+  color: var(--color-text-header);
+}
+
+@keyframes fadeInOut {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 1;
+  }
+}
+
+.ocr-preview-footer .primary.ocr-preview-insert-btn {
+  background: var(--color-highlight-5);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ocr-preview-footer .primary.ocr-preview-insert-btn:hover {
+  background: var(--color-highlight-5-transparent7);
+}
+
+.ocr-preview-footer .ocr-preview-cancel-btn {
+  background: var(--color-text-primary);
+  color: var(--color-text-inverted);
+  font-weight: bold;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ocr-preview-footer .ocr-preview-cancel-btn:hover {
+  background: var(--color-text-secondary);
+}
+
+.ocr-preview-table tbody td:first-child {
+  text-align: center;
+}
+
+.ocr-actions-header{
+  width : 40px;
+  min-width: 40px;
+  padding: 0 !important;
+  text-align: center;
+}
+
+
+/* 1. 더치페이 관련 스타일 추가 */
+.dutch-header {
+  width: 40px;
+  font-size: 1.2em;
+  padding: 8px 0 !important;
+}
+
+.dutch-header.dutch-expense {
+  color: var(--color-accent-blue);
+}
+
+.dutch-header.dutch-income {
+  color: var(--color-accent-red);
+}
+
+.dutch-parent-row>td {
+  background-color: var(--color-bg-header);
+}
+
+.dutch-child-row>td {
+  background-color: var(--color-bg-inset);
+  border-bottom-style: dashed !important;
+  vertical-align: middle;
+}
+
+.ocr-preview-table tr.dutch-child-row:last-child > td {
+  border-bottom: none !important;
+}
+
+.dutch-child-prefix{
+  margin-right: 8px;
+  color: var(--color-text-secondary);
+}
+/* 5. 자식 행의 파일명 텍스트 스타일 */
+.filename-text, .filename-cell {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.filename-text:hover, .filename-cell:hover {
+  color: var(--color-accent-blue);
+}
+.dutch-cancel-amount{
+  color: var(--color-highlight-5-transparent7);
+}
+.dutch-final-amount {
+  font-weight: bold;
+  margin-left: 8px;
+  color: var(--color-accent-blue);
+}
+
+.dutch-revert-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-accent-warning);
+  font-size: 1.4em;
+  font-weight: bold;
+  padding: 4px 8px;
+}
+.dutch-child-row td.align-center{
+  padding: 0;
+}
+
+.dutch-child-row > td:first-child {
+  position: relative;
+  padding-left: 24px; /* '└' 모양을 위한 공간 확보 */
+}
+
+.dutch-child-row > td:first-child::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12px;
+  width: 12px;
+  height: 50%;
+  border-left: 1.5px solid var(--color-text-secondary);
+  border-bottom: 1.5px solid var(--color-text-secondary);
+  border-bottom-left-radius: 4px;
+}
+
+.dutch-revert-btn:hover {
+  opacity: 0.7;
+}

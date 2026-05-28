@@ -1,0 +1,258 @@
+.app-wrapper {
+  display: flex;
+  height: calc(100vh - 32px);
+  margin-top: 32px;
+  overflow: hidden;
+}
+
+/* --- 사이드바 & 햄버거 메뉴 --- */
+.sidebar-container {
+  position: fixed;
+  top: 32px;
+  left: 0;
+  height: calc(100vh - 32px);
+  z-index: 200;
+}
+
+.sidebar-wrapper {
+  position: absolute;
+  left: -272px;
+  top: 0;
+  height: 100%;
+  transition: left 0.3s ease-in-out;
+  z-index: 2;
+}
+
+.sidebar-wrapper.open {
+  left: 0;
+  z-index: 4;
+}
+
+.sidebar {
+  width: 240px;
+  height: 100%;
+  background-color: var(--color-bg-content);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  /* 푸터를 하단으로 밀어냄 */
+  padding: 16px;
+  display: flex;
+  /* 가로 정렬을 위해 flex 사용 */
+  justify-content: flex-end;
+  /* 오른쪽으로 정렬 */
+  gap: 8px;
+  /* 아이콘 사이 간격 */
+  /* border-top 제거 */
+}
+
+.sidebar-footer .icon-button {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 18px;
+  /* 아이콘 크기 조정 */
+  cursor: pointer;
+  line-height: 1;
+  /* 아이콘이 중앙에 오도록 */
+}
+
+.sidebar-footer .icon-button:hover {
+  background-color: var(--color-interactive);
+  color: var(--color-text-primary);
+}
+
+.hamburger-menu {
+  position: absolute;
+  top: 50px; /* 타이틀바 32px + 기존 18px */
+  left: 18px;
+  font-size: 20px;
+  color: var(--color-text-secondary);
+  padding: 12px;
+  border-radius: 50%;
+  background-color: var(--color-interactive);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  z-index: 3;
+}
+
+.hamburger-menu:hover {
+  background-color: var(--color-bg-header);
+}
+
+/* 사이드바 내부 스타일 */
+.sidebar-header h2 {
+  color: var(--color-text-header);
+  font-size: 20px;
+  margin: 8px 0 24px;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav a {
+  display: block;
+  color: var(--color-text-secondary);
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  text-decoration: none;
+}
+
+.sidebar-nav a:hover {
+  background-color: var(--color-interactive);
+  color: var(--color-text-primary);
+}
+
+.sidebar-nav a.active {
+  background-color: var(--color-bg-header);
+  color: var(--color-text-primary);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  font-size: 18px;
+}
+
+.icon-button {
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: color 0.2s;
+}
+
+.icon-button:hover {
+  color: var(--color-text-primary);
+}
+
+/* --- 메인 콘텐츠 --- */
+.main-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0 24px 24px 24px;
+  margin-left: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 24px 60px;
+  padding-left: 0;
+  flex-shrink: 0;
+}
+
+.main-header h1 {
+  color: var(--color-text-header);
+  font-size: 28px;
+  margin: 0;
+}
+
+.content-area {
+  flex-grow: 1;
+}
+
+.card {
+  background-color: var(--color-bg-content);
+  padding: 12px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+/* --- 메인 콘텐츠 헤더 --- */
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.header-actions .icon-button-round.active {
+  color: var(--color-accent-blue);
+  border-color: var(--color-accent-blue);
+}
+
+.status-text {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  position: absolute;
+  /* 메시지 위치를 버튼 오른쪽으로 고정 */
+  left: 100%;
+  margin-left: 12px;
+  width: max-content;
+  /* 메시지가 길어져도 줄바꿈되지 않도록 */
+}
+
+.icon-button-round {
+  background-color: var(--color-interactive);
+  color: var(--color-text-secondary);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.icon-button-round:hover {
+  background-color: var(--color-bg-header);
+  color: var(--color-text-primary);
+}
+
+
+.icon-button[data-tooltip] {
+  position: relative;
+}
+
+.icon-button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 120%;
+  right: 0;
+  background: var(--color-bg-header);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  z-index: 10;
+}
+
+.icon-button[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}

@@ -1,0 +1,314 @@
+/* react-datepicker 오버라이드: 다크 테마 통일 */
+.dp-popper {
+  z-index: 100; /* 2. 달력이 팝업 위에 표시되도록 z-index 추가 */
+}
+.dp-popper .react-datepicker {
+  background: var(--color-bg-content);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: 0 8px 24px var(--color-overlay-medium);
+  border-radius: 8px;
+  padding: 6px;
+  position: relative;
+}
+
+/* 헤더 */
+.dp-popper .react-datepicker__header {
+  position: relative;
+  padding: 8px 44px;
+  height: 44px;
+  box-sizing: border-box;
+  background: var(--color-bg-header);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-header);
+}
+
+/* 현재 달 표기 */
+.dp-popper .react-datepicker__current-month {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--color-text-header);
+  text-align: center;
+  pointer-events: none;
+  display: block;
+  padding-top: 6px;
+}
+
+/* 요일/일자 텍스트 */
+.dp-popper .react-datepicker__day-name,
+.dp-popper .react-datepicker__day {
+  color: var(--color-text-primary);
+}
+.dp-popper .react-datepicker__day-names {
+  font-weight: 600;
+  text-align: center;
+}
+
+/* hover 강조 */
+.dp-popper .react-datepicker__day:hover {
+  background: var(--color-bg-inset);
+  color: var(--color-text-header);
+  border-radius: 6px;
+}
+
+/* 선택된 날짜 스타일 (dayClassName으로도 동일 클래스 부여됨) */
+.react-datepicker__day--keyboard-selected,
+.dp-popper .react-datepicker__day--selected,
+.dp-day-selected {
+  background: var(--color-highlight-5-transparent5) !important;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+/* 오늘 강조(선택과 다르게 표현하고 싶으면 수정) */
+.dp-popper .react-datepicker__day--today {
+  border: 1px solid var(--color-border-interactive);
+  border-radius: 6px;
+}
+
+/* 네비게이션 버튼(이전/다음) */
+.dp-popper .react-datepicker__navigation{
+    position: absolute;
+    top : 10px;
+    transform: none !important;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--color-text-primary);
+    box-sizing: border-box;
+    padding: 0;
+}
+.dp-popper .react-datepicker__navigation--previous { left: 8px; }
+.dp-popper .react-datepicker__navigation--next { right: 8px; }
+.dp-popper .react-datepicker__navigation-icon::before {
+    border-top-color: var(--color-text-primary);
+    border-right-color: var(--color-text-primary);
+    opacity: 0.95;
+}
+.dp-popper .react-datepicker__navigation:hover{
+    background: var(--color-bg-inset);
+    border-color: var(--color-border);
+    box-shadow: 0 4px 12px var(--color-overlay-medium);
+}
+
+/* 기본 triangle 제거(원하면 유지) */
+.dp-popper .react-datepicker__triangle {
+  display: none;
+}
+.dp-popper .react-datepicker__day--outside-month:hover {
+  background: var(--color-bg-overlay-light);
+  color: var(--color-text-primary);
+}
+
+/* 1. DatePicker가 body의 overflow를 변경하는 것을 방지하여 레이아웃 밀림 현상 해결 */
+body.react-datepicker-ignore-onclickoutside {
+  overflow: auto !important;
+}
+/* 2. 접근성용 tab-loop div가 레이아웃에 영향을 주지 않도록 숨김 처리 */
+.date-selector .react-datepicker__tab-loop {
+  position: absolute;
+}
+
+/* input(편집용) 스타일 */
+.dp-input {
+  background: var(--color-bg-inset);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  box-sizing: border-box;
+}
+
+/* focus 시 과한 흰 테두리 제거, subtle 테두리로 통일 */
+.dp-popper:focus-within,
+.dp-input:focus {
+  outline: none;
+  box-shadow: 0 4px 18px var(--color-overlay-medium);
+  border-color: var(--color-border-subtle);
+}
+
+/* 스크롤바 스타일(필요시) */
+.dp-popper .react-datepicker__month-dropdown-container,
+.dp-popper .react-datepicker__year-dropdown-container {
+  color: var(--color-text-primary);
+}
+
+/* 미세 조정: 달력 내부 여백/폰트 크기 */
+.dp-calendar .react-datepicker__month {
+  padding: 6px 4px;
+}
+
+/* 비현행(다른 달) 날짜를 더 어둡게(덜 도드라지게) */
+.dp-popper .react-datepicker__day--outside-month {
+  color: var(--color-highlight-1-transparent7);
+}
+.dp-popper .react-datepicker__week .react-datepicker__day:nth-child(1).react-datepicker__day--outside-month  {
+  color: var(--color-highlight-2-transparent5);
+}
+.dp-popper .react-datepicker__week .react-datepicker__day:nth-child(7).react-datepicker__day--outside-month {
+  color: var(--color-highlight-5-transparent5);
+}
+
+/* 요일 헤더: 일요일 / 토요일 색상 (변수 있으면 사용, 없으면 fallback 색) */
+.dp-popper .react-datepicker__day-name:nth-child(1),
+.dp-popper .react-datepicker__day-name:nth-child(7) {
+  font-weight: 600;
+}
+.dp-popper .react-datepicker__day-name:nth-child(1) { color: var(--color-accent-red); }
+.dp-popper .react-datepicker__day-name:nth-child(7) { color: var(--color-accent-blue); }
+
+/* 날짜 셀: 각 주 칸의 1번째(일)과 7번째(토) 컬럼 색 지정 */
+.dp-popper .react-datepicker__week .react-datepicker__day:nth-child(1) {
+  color: var(--color-accent-red);
+}
+.dp-popper .react-datepicker__week .react-datepicker__day:nth-child(7) {
+  color: var(--color-accent-blue);
+}
+
+/* 비현행 날짜에 hover 효과를 약하게 유지 */
+.dp-popper .react-datepicker__day--outside-month:hover {
+  background: var(--color-bg-overlay-light);
+  color: var(--color-text-primary);
+}
+
+
+
+
+.dp-popper .react-datepicker__header__dropdown {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0px;
+  margin: 0;
+  padding: 0;
+  height: 24px;
+  /* opacity: 0.1; */
+}
+.dp-popper .react-datepicker__year-dropdown-container,
+.dp-popper .react-datepicker__month-dropdown-container {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  height: 24px;
+}
+
+/* 연도/월 읽기 영역 스타일 - 기존 current-month와 유사하게 */
+.dp-popper .react-datepicker__year-read-view,
+.dp-popper .react-datepicker__month-read-view {
+  visibility: visible !important;
+  background-color: var(--color-bg-header);
+  border: 1px solid var(--color-bg-content);
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  color: var(--color-text-header);
+  font-size: 14px;
+  font-weight: 600;
+
+  /* min-width: 60px; */
+  text-align: center;
+  transition: background-color 0.15s;
+  display: inline-flex;
+  /* align-items: center; */
+  justify-content: center;
+  height: 24px;
+  line-height: 20px;
+  box-sizing: border-box;
+}
+
+.dp-popper .react-datepicker__year-read-view:hover,
+.dp-popper .react-datepicker__month-read-view:hover {
+  background-color: var(--color-bg-content-hover);
+}
+
+/* 드롭다운 화살표 숨김 */
+.dp-popper .react-datepicker__year-read-view--down-arrow,
+.dp-popper .react-datepicker__month-read-view--down-arrow {
+  display: none;
+}
+
+.dp-popper .react-datepicker__year-option--selected_year,
+.dp-popper .react-datepicker__month-option--selected_month{
+  border: 1px solid var(--color-border-interactive);
+}
+
+/* 스크롤 드롭다운 스타일 */
+.dp-popper .react-datepicker__year-dropdown,
+.dp-popper .react-datepicker__month-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background-color: var(--color-bg-content);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--color-bg-overlay-medium);
+  z-index: 200;
+  min-height: 200px;
+  max-height: 280px;
+  overflow-y: auto;
+  min-width: 102px;
+  padding: 1px;
+  box-sizing: border-box;
+}
+
+/* 연도/월 옵션 스타일 - FloatingSelectPopup item 스타일 계승 */
+.dp-popper .react-datepicker__year-option,
+.dp-popper .react-datepicker__month-option {
+  height: 36px;
+  line-height: 36px;
+  /* padding: 0 12px; */
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
+  border-radius: 4px;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.react-datepicker__month-option,
+.react-datepicker__year-option{
+  width: 38px;
+  padding: 0 24px;
+  margin: 0;
+}
+.dp-popper .react-datepicker__year-option:hover,
+.dp-popper .react-datepicker__month-option:hover {
+  background: var(--color-bg-inset);
+  color: var(--color-text-header);
+}
+
+/* 선택된 항목 스타일 - FloatingSelectPopup과 동일 */
+.dp-popper .react-datepicker__year-option--selected,
+.dp-popper .react-datepicker__month-option--selected {
+  background: transparent;
+  border: 1px solid var(--color-border-interactive);
+  box-sizing: border-box;
+}
+
+.dp-popper .react-datepicker__year-option--selected:hover,
+.dp-popper .react-datepicker__month-option--selected:hover {
+  background: var(--color-bg-inset);
+  color: var(--color-text-header);
+}
+
+/* 체크마크 숨김 */
+.dp-popper .react-datepicker__year-option--selected,
+.dp-popper .react-datepicker__month-option--selected{
+  display: none;
+}

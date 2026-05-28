@@ -1,0 +1,90 @@
+/* 폰트 및 기본 스타일 초기화 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+:root {
+  /******** 배경색 ********/
+  --color-bg-app: #313338;          /* 앱 전체의 가장 바깥 배경 */
+  --color-bg-content: #2b2d31;      /* 카드, 테이블, 일반 팝업 등 주요 컨텐츠 영역 */
+  --color-bg-content-hover: #383a40;/* 카드, 테이블, 일반 팝업 등 주요 컨텐츠 영역 호버 */
+  --color-bg-header: #1e1f22;       /* 테이블 헤더 등 가장 어두운 배경 */
+  --color-bg-popup-filter: #48484e; /* 필터 팝업 전용 배경 */
+  --color-bg-inset: #232428;        /* 입력 필드 전용 배경 (팝업 배경과 구분) */
+  --color-bg-overlay: rgba(0, 0, 0, 0.75); /* 확인 팝업 등에서만 사용하는 오버레이 */
+  --color-bg-overlay-medium: rgba(0, 0, 0, 0.5); /* 그림자 등에서 사용 */
+  --color-bg-overlay-light: rgba(0, 0, 0, 0.25); /* 필터 팝업 등에서만 사용하는 오버레이 */
+
+  /******** 텍스트 ********/
+  --color-text-primary: #f2f3f5;     /* 가장 일반적인 텍스트 */
+  --color-text-secondary: #b5bac1;  /* placeholder, 보조 텍스트, 아이콘 */
+  --color-text-tertiary: #d8dce1;   /* primary와는 구분짓고 싶지만 secondary는 너무 어두울 때 */
+  --color-text-header: #ffffff;     /* 강조 헤더 */
+  --color-text-inverted: #222224;   /* 밝은 배경 위의 어두운 텍스트 */
+
+  /******** 인터랙티브 요소 ********/
+  --color-border: #404249;             /* 기본 테두리 */
+  --color-border-subtle: #4f525a;     /* 좀 더 밝은 테두리 */
+  --color-border-interactive: rgba(92, 100, 244,  0.5);
+  --color-interactive: #404249;       /* 버튼, 목록 아이템 */
+  --color-interactive-hover: #4f525a; /* 버튼, 목록 아이템 호버 */
+  
+  /********* 강조 색상 ********/
+  --color-accent-blue: #3b82f6;     /* 정보/지출/저장/내림차순 등 주요 액션 */
+  --color-accent-red: #e53e3e;       /* 위험/강조/수입/삭제/오름차순 등 */
+  --color-accent-red-hover: #c53030; /* 강조 빨간색 호버 */
+  --color-accent-positive: #2dc770; /* 성공 */
+  --color-accent-warning: #faa61a;  /* 경고 */
+
+  /********* 하이라이트 색상 *******/
+  --color-highlight-1: #757e8a; /* 회색 */
+  --color-highlight-2: #ed4245; /* 빨강 */
+  --color-highlight-3: #faa61a; /* 주황 */
+  --color-highlight-4: #3ba55c; /* 초록 */
+  --color-highlight-5: #5c64f4; /* 파랑 */
+  --color-highlight-6: #eb459f; /* 핑크 */
+  --color-highlight-1-transparent9: rgba(117, 126, 138, 0.9);
+  --color-highlight-2-transparent9: rgba(237, 66, 69,   0.9);
+  --color-highlight-3-transparent9: rgba(250, 166, 26,  0.9);
+  --color-highlight-4-transparent9: rgba(59, 165, 92,   0.9);
+  --color-highlight-5-transparent9: rgba(92, 100, 244,  0.9);
+  --color-highlight-6-transparent9: rgba(235, 69, 159,  0.9);
+
+  --color-highlight-1-transparent7: rgba(117, 126, 138, 0.7);
+  --color-highlight-2-transparent7: rgba(237, 66, 69,   0.7);
+  --color-highlight-3-transparent7: rgba(250, 166, 26,  0.7);
+  --color-highlight-4-transparent7: rgba(59, 165, 92,   0.7);
+  --color-highlight-5-transparent7: rgba(92, 100, 244,  0.7);
+  --color-highlight-6-transparent7: rgba(235, 69, 159,  0.7);
+
+  --color-highlight-1-transparent5: rgba(117, 126, 138, 0.5);
+  --color-highlight-2-transparent5: rgba(237, 66, 69,   0.5);
+  --color-highlight-3-transparent5: rgba(250, 166, 26,  0.5);
+  --color-highlight-4-transparent5: rgba(59, 165, 92,   0.5);
+  --color-highlight-5-transparent5: rgba(92, 100, 244,  0.5);
+  --color-highlight-6-transparent5: rgba(235, 69, 159,  0.5);
+
+  --color-highlight-1-transparent25: rgba(117, 126, 138, 0.25);
+  --color-highlight-2-transparent25: rgba(237, 66, 69,   0.25);
+  --color-highlight-3-transparent25: rgba(250, 166, 26,  0.25);
+  --color-highlight-4-transparent25: rgba(59, 165, 92,   0.25);
+  --color-highlight-5-transparent25: rgba(92, 100, 244,  0.25);
+  --color-highlight-6-transparent25: rgba(235, 69, 159,  0.25);
+}
+
+
+
+body {
+  margin: 0;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-bg-app);
+  color: var(--color-text-primary);
+}
+
+/* --- 공통 스크롤바 스타일 --- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--color-bg-header); } /* 가장 어두운 배경 사용 */
+::-webkit-scrollbar-thumb { background: #48484e; border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #4f525a; }

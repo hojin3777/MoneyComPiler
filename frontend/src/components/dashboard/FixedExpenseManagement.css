@@ -1,0 +1,326 @@
+/* ==================== 카드 컨테이너 ==================== */
+.fixed-expense-card-content-fexpense {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.fixed-expense-table-container-fexpense {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* ==================== 테이블 ==================== */
+.fixed-expense-table-fexpense {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.fixed-expense-table-fexpense th,
+.fixed-expense-table-fexpense td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    font-size: 14px;
+    text-align: center;
+}
+
+.fixed-expense-table-fexpense th {
+    font-size: 16px;
+    background-color: var(--color-bg-header);
+    color: var(--color-text-header);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    text-align: center;
+}
+
+.fixed-expense-table-fexpense tbody tr {
+    transition: background-color 0.2s;
+}
+
+.fixed-expense-table-fexpense tbody tr td.clickable-cell-fexpense:first-child:hover,
+.fixed-expense-table-fexpense tbody tr td.clickable-cell-fexpense:nth-child(2):hover {
+    background-color: var(--color-bg-content-hover);
+}
+
+.fixed-expense-table-fexpense tbody tr .merchant-cell-fexpense.clickable-cell-fexpense:hover,
+.fixed-expense-table-fexpense tbody tr .category-cell-fexpense.clickable-cell-fexpense:hover {
+    color: var(--color-accent-blue);
+    cursor: pointer;
+}
+
+/* hover 시 형제 셀도 함께 하이라이트 */
+.fixed-expense-table-fexpense tbody tr td.merchant-cell-fexpense:hover ~ td.category-cell-fexpense,
+.fixed-expense-table-fexpense tbody tr:has(td.merchant-cell-fexpense:hover) td.category-cell-fexpense,
+.fixed-expense-table-fexpense tbody tr:has(td.category-cell-fexpense:hover) td.merchant-cell-fexpense {
+    background-color: var(--color-bg-content-hover);
+    color: var(--color-accent-blue);
+}
+
+/* ==================== 컬럼 너비 ==================== */
+.col-merchant-fexpense { width: 20%; }
+.col-category-fexpense { width: 20%; }
+.col-day-fexpense { width: 20%; }
+.col-amount-fexpense { width: 25%; }
+.col-trend-fexpense { width: 20px;}
+.col-recent-fexpense { width: 15%; }
+
+/* ==================== 셀 스타일 ==================== */
+.merchant-cell-fexpense,
+.category-cell-fexpense {
+    cursor: pointer;
+    color: var(--color-text-primary);
+}
+
+/* .merchant-cell-fexpense:hover,
+.category-cell-fexpense:hover {
+    background-color: var(--color-bg-content-hover);
+    color: var(--color-accent-blue);
+} */
+
+.day-cell-fexpense {
+    text-align: center;
+    color: var(--color-text-primary);
+    text-align: right !important;
+}
+
+.amount-cell-fexpense {
+    color: var(--color-text-primary);
+    text-align: right !important;
+    font-weight: 500;
+}
+
+.trend-cell-fexpense {
+    width: 10%;
+    text-align: left !important;
+    padding: 0 !important;
+}
+
+.trend-icon-up-fexpense {
+    color: var(--color-accent-red);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.trend-icon-down-fexpense {
+    color: var(--color-accent-blue);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.trend-icon-same-fexpense {
+    color: var(--color-highlight-1);
+    padding-left: 2px;
+    padding-top: 2px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.recent-months-fexpense {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.month-indicator-fexpense {
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.indicator-complete-fexpense {
+    color: var(--color-accent-positive);
+}
+
+.indicator-incomplete-fexpense {
+    color: var(--color-accent-warning);
+}
+
+.indicator-insufficient-fexpense {
+    color: var(--color-highlight-1);
+}
+
+/* ==================== 총계 행 (MonthlyDetail과 동일) ==================== */
+.total-row-fexpense {
+    background-color: var(--color-bg-header);
+    font-weight: 700;
+}
+
+.total-label-fexpense {
+    color: var(--color-text-header);
+    text-align: right !important;
+}
+
+.total-amount-fexpense {
+    color: var(--color-text-header);
+    text-align: right !important;
+    font-size: 16px;
+}
+
+.total-basis-fexpense {
+    text-align: left;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+/* ==================== 툴팁 ==================== */
+.fixed-expense-tooltip-fexpense {
+    position: absolute;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* 상세 툴팁 */
+.fixed-expense-detail-tooltip-fexpense {
+    background-color: var(--color-bg-inset);
+    border: 1px solid var(--color-border-interactive);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 4px 12px var(--color-bg-overlay-light);
+    max-width: 400px;
+    min-width: 250px;
+}
+
+.tooltip-header-fexpense {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+}
+
+.tooltip-period-fexpense {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+}
+
+.tooltip-divider-fexpense {
+    height: 1px;
+    background-color: var(--color-border-subtle);
+    margin: 8px 0;
+}
+
+.tooltip-body-fexpense {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.tooltip-item-fexpense {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 13px;
+}
+
+.tooltip-date-fexpense {
+    color: var(--color-text-secondary);
+}
+
+.tooltip-amount-fexpense {
+    color: var(--color-text-primary);
+    font-weight: 500;
+}
+
+/* 작은 툴팁 */
+.fixed-expense-small-tooltip-fexpense {
+    background-color: var(--color-bg-inset);
+    border: 1px solid var(--color-border-interactive);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    box-shadow: 0 2px 8px var(--color-bg-overlay-light);
+}
+
+/* ==================== 상세 팝업 ==================== */
+/* 툴팁 스타일 팝업 */
+.detail-popup-tooltip-fexpense {
+    position: absolute;
+    z-index: 2000;
+    background-color: var(--color-bg-inset);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 4px 12px var(--color-bg-overlay-light);
+    max-width: 400px;
+    min-width: 200px;
+    max-height: 240px;
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
+}
+
+.detail-popup-header-fexpense {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4px;
+}
+
+.detail-popup-title-fexpense {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-weight: 600;
+    font-size: 14px;  /* 툴팁 스타일에 맞춤 */
+    color: var(--color-text-primary);
+    padding-right: 4px;
+}
+
+.detail-popup-close-fexpense {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.detail-popup-close-fexpense:hover {
+    color: var(--color-text-primary);
+}
+
+.detail-popup-period-fexpense {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: 4px;
+}
+
+.detail-popup-divider-fexpense {
+    height: 1px;
+    background-color: var(--color-border-subtle);
+    margin: 6px 0;
+}
+
+.detail-popup-body-fexpense {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.detail-popup-item-fexpense {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;  /* 툴팁 스타일에 맞춤 */
+    font-size: 13px;
+}
+
+.detail-popup-item-fexpense span:first-child {
+    color: var(--color-text-primary);
+}
+
+.detail-popup-item-fexpense span:last-child {
+    color: var(--color-text-primary);
+    font-weight: 500;
+    padding-right: 2px;
+}

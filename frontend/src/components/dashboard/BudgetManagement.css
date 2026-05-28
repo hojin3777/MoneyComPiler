@@ -1,0 +1,230 @@
+/* ==================== 카드 컨테이너 ==================== */
+.budget-card-content-mbudget {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.budget-table-container-mbudget {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* 범례 */
+.heatmap-legend-mbudget {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  margin-right: auto;
+}
+
+.legend-item-mbudget {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.legend-color-mbudget {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* ==================== 테이블 ==================== */
+.budget-table-mbudget {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.budget-table-mbudget th,
+.budget-table-mbudget td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    text-align: center;
+    font-size: 14px;
+}
+
+.budget-table-mbudget th{
+    font-size: 16px;
+}
+
+.budget-table-mbudget th {
+    background-color: var(--color-bg-header);
+    color: var(--color-text-header);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* 열 너비 */
+.col-major-mbudget { width: 18%; }
+.col-minor-mbudget { width: 18%; }
+.col-spent-mbudget { width: 16%; }
+.col-progress-mbudget { width: 32%; }
+.col-amount-mbudget { width: 16%; }
+
+/* ==================== 셀 공통 스타일 ==================== */
+/* 클릭 가능한 셀 */
+.clickable-cell-mbudget {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.clickable-cell-mbudget:hover {
+    background-color: var(--color-bg-content-hover);
+}
+
+/* placeholder */
+.placeholder-mbudget {
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+.whole-category-mbudget {
+    color: var(--color-text-secondary);
+}
+
+/* 사용금액 (우측 정렬) */
+.spent-cell-mbudget {
+    text-align: right !important;
+}
+
+/* ==================== 사용률 Progress Bar (MonthlyDetail 방식) ==================== */
+.progress-cell-mbudget {
+    padding: 4px !important;
+}
+
+.percentage-cell-mbudget {
+    position: relative;
+    width: 100%;
+    height: 16px;
+    background-color: var(--color-bg-overlay-light);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.percentage-bar-fill-mbudget {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.percentage-text-mbudget {
+    position: absolute;
+    right: 0px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-header);
+    padding: 0 4px;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+/* ==================== 예산 설정 셀 (편집 가능) ==================== */
+.amount-cell-mbudget {
+    position: relative;
+    text-align: right !important;
+    cursor: pointer;
+}
+
+.amount-cell-mbudget.editing-mbudget {
+    padding: 0 !important;
+}
+
+.amount-value-mbudget {
+    transition: opacity 0.2s;
+}
+
+.amount-cell-mbudget:hover .amount-value-mbudget {
+    opacity: 0.3;
+}
+
+/* 수정/삭제 아이콘 */
+.cell-actions-mbudget {
+    display: none;
+    gap: 12px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--color-bg-content-hover);
+    opacity: 0.8;
+    border-radius: 4px;
+}
+
+.amount-cell-mbudget:hover .cell-actions-mbudget {
+    display: flex;
+}
+
+.action-icon-mbudget {
+    cursor: pointer;
+    font-size: 16px;
+    transition: transform 0.2s;
+}
+
+.action-icon-mbudget:hover {
+    transform: scale(1.2);
+}
+
+.edit-icon-mbudget {
+    color: var(--color-accent-positive);
+}
+
+.delete-icon-mbudget {
+    color: var(--color-accent-red);
+}
+
+/* 편집 input */
+.edit-input-mbudget {
+    width: 100%;
+    height: 100%;
+    padding: 8px 12px;
+    background-color: var(--color-bg-inset);
+    border: 1px solid var(--color-border-interactive);
+    color: var(--color-text-primary);
+    border-radius: 4px;
+    text-align: right;
+    font-size: inherit;
+    box-sizing: border-box;
+}
+
+.edit-input-mbudget:focus {
+    outline: none;
+    border-color: var(--color-accent-blue);
+}
+
+/* ==================== 행 추가 버튼 ==================== */
+.add-row-button-mbudget {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    margin: 16px;
+    border: 2px dashed var(--color-border);
+    border-radius: 4px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-row-button-mbudget:hover {
+    border-color: var(--color-border-subtle);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-content-hover);
+}

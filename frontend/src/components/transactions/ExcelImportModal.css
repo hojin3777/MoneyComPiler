@@ -1,0 +1,180 @@
+/* OcrPreviewTableModal.css와 거의 동일한 스타일 */
+.excel-import-modal-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--color-bg-overlay, rgba(0, 0, 0, 0.75));
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.excel-import-modal {
+  background: var(--color-bg-content);
+  border-radius: 12px;
+  border: 1.5px solid var(--color-border);
+  box-shadow: 0 8px 32px var(--color-bg-overlay-light);
+  width: 90vw;
+  max-width: 1200px;
+  min-height: 320px;
+  max-height: 80vh;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* Header */
+.excel-import-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.excel-import-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--color-text-header);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Table Area */
+.excel-import-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.excel-import-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.excel-import-table th,
+.excel-import-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  white-space: nowrap;
+  font-size: 0.95em;
+  text-align: left;
+}
+
+.excel-import-table th:nth-child(4),
+.excel-import-table td:nth-child(4),
+.excel-import-table th:nth-child(5),
+.excel-import-table td:nth-child(5) {
+  min-width: 120px;
+}
+
+.excel-import-table th:nth-child(8),
+.excel-import-table td:nth-child(8) {
+  width: 250px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  vertical-align: middle;
+}
+
+.memo-cell-content {
+  max-height: 2.1em; /* 최대 높이를 약 2~3줄로 제한 */
+  overflow-y: auto; /* 내용이 넘치면 수직 스크롤바 표시 */
+  font-size: 0.9em; /* 글자 크기 살짝 조정 */
+  white-space: normal; /* 자동 줄바꿈 허용 */
+  word-break: break-all; /* 단어가 길어도 강제 줄바꿈 */
+  padding-right: 5px; /* 스크롤바 공간 확보 */
+}
+
+.memo-cell-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.memo-cell-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.memo-cell-content::-webkit-scrollbar-thumb {
+  background: var(--color-interactive-hover);
+  border-radius: 4px;
+}
+
+.excel-import-table th:last-child,
+.excel-import-table td:last-child {
+  border-right: none;
+}
+
+.excel-import-table tr:last-child td {
+  border-bottom: none;
+}
+
+.excel-import-table th {
+  background-color: var(--color-bg-header);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  text-align: center;
+}
+
+.excel-import-table td.align-center { text-align: center; }
+.excel-import-table td.align-right { text-align: right; }
+
+.amount-expense { color: var(--color-accent-blue); }
+.amount-income { color: var(--color-accent-red); font-weight: 500; }
+
+.highlight-error { animation: highlight-error-animation 3s ease-out; }
+.placeholder { color: var(--color-text-secondary); font-style: italic; }
+
+/* Footer */
+.excel-import-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.excel-import-notification {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 500;
+  animation: fadeInOut 4s ease-in-out;
+}
+
+.excel-import-notification.error {
+  background-color: var(--color-highlight-2-transparent25);
+  color: var(--color-text-header);
+}
+
+.excel-import-footer .primary {
+  background: var(--color-highlight-5);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.excel-import-footer .cancel-btn {
+  background: var(--color-text-primary);
+  color: var(--color-text-inverted);
+  font-weight: bold;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+}

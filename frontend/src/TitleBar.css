@@ -1,0 +1,80 @@
+.titlebar {
+  height: 32px;
+  background: var(--color-bg-content);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-light);
+  user-select: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+}
+
+.titlebar-drag-region {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  -webkit-app-region: drag; /* 드래그 가능 영역 */
+  padding-left: 12px;
+}
+
+.titlebar.mac .titlebar-drag-region {
+  padding-left: 80px;
+}
+
+
+.titlebar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-header);
+}
+
+.titlebar.mac .titlebar-title {
+  gap: 8px;
+}
+
+.titlebar-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.titlebar-controls {
+  display: flex;
+  -webkit-app-region: no-drag; /* 버튼은 드래그 불가 */
+}
+
+.titlebar-button {
+  width: 46px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+  font-size: 11px;
+}
+
+.titlebar-button:hover {
+  background: var(--color-bg-content-hover);
+}
+
+.titlebar-button.close:hover {
+  background: var(--color-accent-red);
+  color: white;
+}
+
+.titlebar-button svg {
+  width: 10px;
+  height: 10px;
+}

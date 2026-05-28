@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+
+models/
+test_image/
+dist-electron/
+.github/
+pororo_easyocr_main/

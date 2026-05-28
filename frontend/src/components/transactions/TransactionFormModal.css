@@ -1,0 +1,430 @@
+.form-modal-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.form-modal-content {
+  background-color: var(--color-bg-content);
+  border-radius: 8px;
+  border: 2px solid var(--color-border);
+  padding: 0;
+  box-shadow: 0px 8px 16px var(--color-bg-overlay);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  pointer-events: auto;
+  height: 615px;
+}
+
+.main-panel {
+  flex: 0 0 440px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* overflow-y: auto; */
+}
+
+.form-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  cursor: move;
+  min-height: 0;
+}
+
+/* 1. 날짜 선택기 UI 개편 */
+.date-selector {
+  display: flex;
+  flex-grow: 1; /* 헤더 영역 채우기 */
+  align-items: center;
+  gap: 4px;
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+.date-selector .calendar-btn {
+  background: var(--color-bg-inset);
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 1.1rem;
+}
+.date-selector .calendar-btn:hover {
+  background-color: var(--color-interactive-hover);
+  color: var(--color-text-primary);
+}
+
+.date-selector .date-part {
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  transition: background-color 0.15s;
+  background-color: var(--color-bg-inset);
+}
+.date-selector .date-part:hover {
+  background-color: var(--color-interactive-hover);
+}
+.date-selector .date-part.year { width: 70px; text-align: center; }
+.date-selector .date-part.month,
+.date-selector .date-part.day { width: 50px; text-align: center; }
+
+.date-selector .separator {
+  margin: 0 4px;
+}
+
+.date-selector .weekday {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: var(--color-bg-inset);
+  color: var(--color-text-primary);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: color 0.2s;
+  padding: 0;
+  line-height: 1;
+}
+.close-btn:hover { color: var(--color-text-primary); }
+
+.form-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.grid-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  height: 340px;
+  font-size: 0.85rem;
+}
+
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+.left-column .panel:first-child{
+  flex-grow: 1;
+}
+.left-column .panel:last-child{
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.panel label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  padding-left: 4px;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+/* 2. 리스트 UI 복원 */
+.selectable-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  background-color: var(--color-bg-inset);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.selectable-list.fixed-height{
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+
+.selectable-list.full-height {
+  height: 100%;
+}
+
+.selectable-list li {
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+  transition: background-color 0.15s, color 0.15s;
+  font-size: 0.85rem;
+}
+
+.selectable-list li:hover {
+  background-color: var(--color-interactive-hover);
+  color: var(--color-text-primary);
+}
+
+.selectable-list li.selected {
+  background-color: var(--color-accent-blue);
+  color: white;
+  font-weight: 600;
+}
+
+.detail-label{
+  font-weight: 600;
+  margin-bottom: 6px;
+  padding-left: 4px;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+.detail-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.form-group-inline {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 12px;
+}
+
+.detail-fields input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-inset);
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+.detail-fields input[type="text"]:focus {
+  outline: none;
+  border-color: var(--color-accent-blue);
+  color: var(--color-text-primary);
+}
+.amount-input{
+  text-align: right;
+  font-weight: bold;
+  padding: 7px 10px !important;
+  font-size: 1rem !important;
+}
+.amount-input.income {
+  color: var(--color-accent-red) !important;
+}
+.amount-input.expense {
+  color: var(--color-accent-blue) !important;
+}
+.label-with-warning{
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.amount-warning{
+  font-size: 0.75rem;
+  color: var(--color-accent-red);
+  font-weight: 500;
+}
+
+.form-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.form-modal-footer button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+  font-size: 0.9rem;
+}
+
+.form-modal-footer .btn-primary {
+  background-color: var(--color-highlight-5);
+  color: white;
+  border: none;
+}
+.form-modal-footer .btn-primary:hover {
+  background-color: var(--color-highlight-5-transparent7);
+}
+
+.form-modal-footer button:not(.btn-primary) {
+  background-color: var(--color-text-primary);
+  color: var(--color-text-inverted);
+  border: none;
+}
+.form-modal-footer button:not(.btn-primary):hover {
+  background-color: var(--color-text-secondary);
+}
+
+/* 알림 메시지 스타일 */
+.form-notification {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  width: max-content; /* 내용에 맞게 너비 조절 */
+  background-color: var(--color-highlight-2-transparent25);
+  color: var(--color-text-primary-inverted);
+  padding: 8px 18px;
+  border-radius: 6px;
+  z-index: 10;
+  font-weight: 500;
+  font-size: 0.9em;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+/* 1. OcrPreview와 동일한 키프레임으로 변경 */
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0;
+  }
+  15%, 85% {
+    opacity: 1;
+  }
+}
+
+
+
+
+/* 2. 사이드 패널 스타일 */
+.side-panel {
+  flex: 0 0 200px; /* 고정 너비 */
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 1px solid var(--color-border); /* 세로 구분선 */
+  background-color: var(--color-bg-content); /* 메인과 동일한 배경 */
+}
+
+.side-panel-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.side-panel-section-header label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+}
+
+.side-panel-section-header .icon-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0 4px;
+}
+.side-panel-section-header .icon-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.side-panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0; /* flex 자식의 스크롤을 위해 */
+}
+.side-panel-section + .side-panel-section.suggestions-section{
+  border-top: 1px solid var(--color-border);
+  padding-top: 8px;
+}
+
+.side-panel-section label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+}
+
+.side-panel-section input[type="text"] {
+  padding: 6px 8px;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-inset);
+  color: var(--color-text-primary);
+}
+
+.suggestions-section {
+  flex-grow: 1; /* 남은 공간 모두 차지 */
+}
+
+.suggestion-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestion-list li {
+  background-color: var(--color-bg-inset);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.suggestion-list li:hover {
+  background-color: var(--color-bg-content);
+  border-color: var(--color-border-interactive);
+}
+
+.suggestion-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-merchant {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: 2px;
+}

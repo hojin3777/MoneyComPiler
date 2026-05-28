@@ -1,0 +1,136 @@
+.monthly-treemap-mtreemap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.monthly-treemap-mtreemap-loading {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-text-secondary);
+}
+
+.monthly-treemap-mtreemap-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.monthly-treemap-mtreemap-major {
+  user-select: none;
+  font-weight: 500;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  text-shadow: none !important;
+  stroke: none !important;
+  outline: none !important;
+}
+
+.monthly-treemap-mtreemap-major,
+.monthly-treemap-mtreemap-index {
+  user-select: none;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Treemap 애니메이션 완전 비활성화 */
+.monthly-treemap-mtreemap-card .recharts-surface {
+  overflow: hidden;
+}
+
+.monthly-treemap-mtreemap-card .recharts-treemap-depth-1,
+.monthly-treemap-mtreemap-card .recharts-treemap-depth-2 {
+  transition: none !important;
+  animation: none !important;
+}
+
+
+.monthly-treemap-mtreemap-minor {
+  pointer-events: none;
+  user-select: none;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  text-shadow: none !important;
+  stroke: none !important;
+  outline: none !important;
+}
+
+.treemap-child-rect {
+  cursor: pointer;
+}
+
+.treemap-tooltip-mtreemap {
+  pointer-events: none;
+  z-index: 2000;
+}
+
+.treemap-tooltip-mtreemap-content {
+  background-color: var(--color-bg-content);
+  opacity: 0.97;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 12px; /* 패딩 증가 */
+  box-shadow: 0 4px 12px var(--color-bg-overlay-light);
+  min-width: 180px; /* 최소 너비 설정 */
+  transition: opacity 0.2s ease-in-out;
+}
+
+.treemap-tooltip-mtreemap-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+/* 부모 요소 스타일 */
+.treemap-tooltip-mtreemap-item.parent {
+  color: var(--color-text-header);
+  font-weight: 600;
+  font-size: 14px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-subtle); /* 구분선 추가 */
+}
+
+.treemap-tooltip-mtreemap-item.parent span:last-child {
+  color: var(--color-text-header);
+}
+
+/* 자식 요소 목록 컨테이너 */
+.treemap-tooltip-mtreemap-children-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* 자식 요소 간 간격 */
+}
+
+/* 자식 요소 기본 스타일 */
+.treemap-tooltip-mtreemap-item.child {
+  color: var(--color-text-primary); /* 기본 색상을 secondary로 */
+  font-weight: 400;
+}
+
+.treemap-tooltip-mtreemap-item.child span:last-child {
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+/* 현재 hover된 자식 요소 스타일 */
+.treemap-tooltip-mtreemap-item.child.active {
+  font-weight: 600;
+}
+
+.treemap-tooltip-mtreemap-item.child.active span:last-child {
+  font-weight: 600;
+}

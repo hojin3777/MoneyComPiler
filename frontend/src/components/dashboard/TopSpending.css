@@ -1,0 +1,232 @@
+/* --- 토글 스위치 스타일 시작 --- */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 20px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-highlight-5-transparent9);
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: var(--color-highlight-4-transparent9);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--color-highlight-4-transparent9);
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(14px);
+  -ms-transform: translateX(14px);
+  transform: translateX(14px);
+}
+
+.slider.round {
+  border-radius: 20px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.top-spending-switch{
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+
+.top-spending-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.top-spending-loading,
+.top-spending-no-data {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.top-spending-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 4px 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-header);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 8px;
+}
+
+.view-mode-toggle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.view-mode-toggle:hover {
+  color: var(--color-text-primary);
+}
+
+.top-spending-chart-wrapper{
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+.top-spending-chart-container {
+  display: flex;
+  height: 100%;
+}
+
+.center-divider{
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed var(--color-border-subtle);
+  z-index: 1;
+}
+
+.chart-half {
+  width: 50%;
+  height: 100%;
+}
+
+/* 왼쪽 차트의 Y축 레이블(카테고리명) 정렬 */
+.chart-half.left .recharts-yAxis .recharts-text {
+  text-anchor: start !important;
+}
+
+/* 오른쪽 차트의 Y축 레이블(카테고리명) 정렬 */
+.chart-half.right .recharts-yAxis .recharts-text {
+  text-anchor: end !important;
+}
+
+.chart-half .recharts-cartesian-grid-vertical line {
+  stroke-opacity: 0.7;
+}
+
+
+
+/* 툴팁 스타일 */
+.custom-tooltip-top-spending {
+  background-color: var(--color-bg-content);
+  opacity: 0.98;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 12px;
+  box-shadow: 0 2px 8px var(--color-bg-overlay-light);
+  min-width: 160px;
+}
+
+.tooltip-label-top-spending {
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 8px;
+  /* color: var(--color-text-primary); */
+}
+
+.tooltip-item-top-spending {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.tooltip-divider-top-spending {
+  border-top: 1px solid var(--color-border-subtle);
+  margin: 8px 0;
+}
+
+.tooltip-details-list-top-spending {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px; /* 툴팁이 너무 길어지는 것을 방지 */
+  overflow-y: auto;
+}
+
+.tooltip-detail-item-top-spending {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.tooltip-detail-item-top-spending span:first-child {
+  color: var(--color-text-primary);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tooltip-remaining-count-top-spending {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 4px 0 0;
+  text-align: right;
+}
+
+/* 하이라이트 스타일 */
+.top-spending-highlight {
+  display: inline-block;
+  font-size: 14px;
+  padding: 0.12em 0.4em 0.08em 0.4em;
+  margin: 0em -0.7em;
+  border-radius: 6px;
+  color: var(--color-text-inverted);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+/* .top-spending-highlight.color-1 { background-color: var(--color-highlight-1)} */
+.top-spending-highlight.color-2 { background-color: var(--color-highlight-2)}
+.top-spending-highlight.color-3 { background-color: var(--color-highlight-3)}
+.top-spending-highlight.color-4 { background-color: var(--color-highlight-4)}
+.top-spending-highlight.color-5 { background-color: var(--color-highlight-5)}
+.top-spending-highlight.color-6 { background-color: var(--color-highlight-6)}
+/* .top-spending-highlight.color-1-transparent7 { background-color: var(--color-highlight-1-transparent7)} */
+.top-spending-highlight.color-2-transparent7 { background-color: var(--color-highlight-2-transparent7)}
+.top-spending-highlight.color-3-transparent7 { background-color: var(--color-highlight-3-transparent7)}
+.top-spending-highlight.color-4-transparent7 { background-color: var(--color-highlight-4-transparent7)}
+.top-spending-highlight.color-5-transparent7 { background-color: var(--color-highlight-5-transparent7)}
+.top-spending-highlight.color-6-transparent7 { background-color: var(--color-highlight-6-transparent7)}

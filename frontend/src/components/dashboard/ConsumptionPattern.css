@@ -1,0 +1,393 @@
+/* ==================== 카드 컨테이너 ==================== */
+.dashboard-card-cpattern {
+  background: var(--color-bg-content);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 512px;
+}
+
+.dashboard-card-content-cpattern {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.dashboard-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-header);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 범례 */
+.heatmap-legend-cpattern {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  margin-right: auto;
+}
+
+.legend-item-cpattern {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.legend-color-cpattern {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* .header-icon-button-pattern {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 21px;
+  transition: all 0.2s;
+} */
+.header-icon-button-cpattern {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  /* 우측 정렬 */
+}
+
+.header-icon-button-cpattern:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-app);
+}
+
+.loading-cpattern {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+/* ==================== 좌우 레이아웃 ==================== */
+.pattern-layout-cpattern {
+  display: flex;
+  gap: 20px;
+  height: 100%;
+  min-height: 0;
+}
+
+/* 좌측: 히트맵 (60%) */
+.heatmap-section-cpattern {
+  flex: 0 0 55%;
+  min-width: 400px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* 우측: 인사이트 (40%) */
+.insights-section-cpattern {
+  flex: 1;
+  min-width: 250px;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+/* ==================== 히트맵 테이블 ==================== */
+.heatmap-table-wrapper-cpattern {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 100%;
+}
+
+.heatmap-table-cpattern {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 1px;
+  font-size: 13px;
+}
+
+.heatmap-header-row-cpattern {
+  background-color: var(--color-bg-content);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.heatmap-table-cpattern thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.heatmap-table-cpattern th {
+  background-color: var(--color-bg-header);
+  color: var(--color-text-header);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 10px 2px;
+  text-align: center;
+}
+
+.heatmap-table-cpattern td {
+  padding: 12px 2px;
+  text-align: center;
+}
+
+.category-header-cpattern {
+  text-align: left;
+  width: 100px;
+}
+
+.weekday-header-cpattern {
+  width: 40px;
+}
+
+.weekday-header-cpattern.sunday {
+  color: var(--color-accent-red);
+}
+
+.weekday-header-cpattern.saturday {
+  color: var(--color-accent-blue);
+}
+
+
+.category-label-cpattern {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-weight: 500;
+  text-align: left;
+  padding-left: 12px;
+  border-radius: 4px;
+}
+
+.heatmap-cell-cpattern {
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-header);
+  opacity: 0.9;
+  width: 45px;
+  position: relative;
+}
+
+.heatmap-cell-cpattern:hover {
+  transform: scale(1.05);
+  opacity: 1;
+}
+
+.heatmap-cell-highlighted-cpattern {
+  animation: pulse-highlight-cpattern 1.5s ease-in-out infinite;
+  /* infinite로 hover 중 계속 반복 */
+  box-shadow: 0 0 0 2px var(--color-accent-positive);
+  z-index: 3000;
+}
+
+/* hover 해제 시 마지막 loop 완료 후 종료 */
+.heatmap-cell-cpattern:not(.heatmap-cell-highlighted-cpattern) {
+  animation: none;
+}
+
+@keyframes pulse-highlight-cpattern {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px var(--color-accent-positive);
+  }
+
+  50% {
+    box-shadow: 0 0 0 3px var(--color-accent-positive), 0 0 12px var(--color-accent-positive);
+  }
+}
+
+.empty-cell-cpattern {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.empty-cell-cpattern:hover {
+  transform: none;
+  opacity: 0.6;
+}
+
+
+/* 합계 행 스타일 */
+.total-row-cpattern {
+  border-top: 2px solid var(--color-border);
+}
+
+.total-label-cpattern {
+  background-color: var(--color-bg-header);
+  color: var(--color-text-header);
+  font-weight: 600;
+  text-align: left;
+  border-radius: 4px;
+}
+
+.total-cell-cpattern {
+  background-color: var(--color-bg-header);
+  color: var(--color-text-header);
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+
+/* ==================== 인사이트 영역 ==================== */
+.insight-item-cpattern {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 8px;
+  background: var(--color-bg-secondary);
+  /* border-radius: 8px; */
+  border-left: 3px solid var(--color-highlight-1);
+  transition: all 0.2s;
+  flex-shrink: 0;
+  word-wrap: break-word;
+}
+
+.insight-item-cpattern:hover {
+  background-color: var(--color-bg-content-hover);
+  border-left-color: var(--color-accent-positive);
+}
+
+.insight-icon-cpattern {
+  font-size: 18px;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.insight-message-cpattern {
+  color: var(--color-text-primary);
+  font-size: 13px;
+  line-height: 2.1;
+  flex: 1;
+  word-break: keep-all;
+}
+
+.no-insights-cpattern {
+  text-align: center;
+  padding: 24px 12px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+
+/* ==================== 툴팁 (FixedExpenseManagement 스타일) ==================== */
+.heatmap-tooltip-cpattern {
+  position: absolute;
+  z-index: 2000;
+  background-color: var(--color-bg-inset);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 12px var(--color-bg-overlay-light);
+  min-width: 200px;
+  max-width: 400px;
+  max-height: 280px;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+
+.tooltip-header-cpattern {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.tooltip-title-cpattern {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-header);
+}
+
+.tooltip-close-button-cpattern {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tooltip-close-button-cpattern:hover {
+  color: var(--color-text-primary);
+}
+
+.tooltip-divider-cpattern {
+  height: 1px;
+  background-color: var(--color-border-subtle);
+  margin: 6px 0;
+}
+
+.tooltip-body-cpattern {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.tooltip-item-cpattern {
+  display: grid;
+  grid-template-columns: 80px 1fr 80px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.tooltip-date-cpattern {
+  color: var(--color-text-secondary);
+}
+
+.tooltip-merchant-cpattern {
+  color: var(--color-text-header);
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tooltip-amount-cpattern {
+  color: var(--color-text-primary);
+  font-weight: 500;
+  text-align: right;
+}

@@ -1,0 +1,212 @@
+.mapping-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+/* 
+.mapping-left-panel::-webkit-scrollbar {
+  width: 8px;
+}
+.mapping-left-panel::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+.mapping-left-panel::-webkit-scrollbar-thumb {
+  background: var(--color-interactive);
+  border-radius: 4px;
+}
+.mapping-left-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-link);
+} */
+
+.mapping-table th, .mapping-table td {
+  border: 1px solid var(--color-border);
+  padding: 8px 12px;
+  vertical-align: middle;
+  color: var(--color-text-primary);
+}
+
+.major-category-cell {
+  /* 너비는 메인 소스에서 제어 */
+  /* width: 200px; */ 
+  font-weight: bold;
+  text-align: center;
+  background-color: var(--color-bg-header);
+  color: var(--color-text-header);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.minor-category-cell {
+  /* width: 240px; */
+  background-color: var(--color-bg-content);
+}
+
+.mapped-outputs-cell {
+  background-color: var(--color-bg-app);
+  min-height: 42px; /* 드롭 영역 최소 높이 */
+  padding: 6px;
+}
+
+.mapped-outputs-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-height: 28px;
+}
+
+.bert-output-chip {
+  background-color: var(--color-interactive); 
+  color: var(--color-text-primary);
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  cursor: grab;
+  user-select: none;
+  border: 1px solid transparent; /* ✨ 기본 테두리 투명 처리 */
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.bert-output-chip:hover {
+  background-color: var(--color-interactive-hover); 
+  color: var(--color-text-header);
+}
+
+/* 드래그 중인 아이템 스타일 */
+.bert-output-chip.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+  border-color: var(--color-accent-blue);
+  z-index: 10;
+  box-shadow: 0 4px 12px var(--color-bg-overlay-medium);
+}
+
+/* 드롭 가능한 영역 하이라이트 */
+.droppable-highlight {
+  background-color: var(--color-highlight-5-transparent25) !important; 
+  transition: background-color 0.3s ease;
+  outline: 1px solid var(--color-highlight-5-transparent9);
+}
+
+
+
+
+
+/* --- Rule Panel Styles --- */
+.rule-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-app);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  height: 50%; /* 패널 높이 고정 */
+}
+
+.rule-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: var(--color-bg-header);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rule-panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--color-text-header);
+}
+
+.rule-panel-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.icon-button-square, .icon-button-square-primary {
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+.icon-button-square{
+  background: var(--color-interactive);
+  color: var(--color-text-primary);
+}
+.icon-button-square:hover {
+  background: var(--color-interactive-hover);
+}
+.icon-button-square-primary {
+  background: var(--color-accent-red);
+  color: white;
+}
+.icon-button-square-primary:hover {
+  background: var(--color-accent-red-hover);
+}
+
+.rule-panel-body {
+  flex-grow: 1;
+  overflow-y: auto; /* 내부 스크롤 활성화 */
+}
+
+.rule-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rule-table th, .rule-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.rule-table th {
+  background-color: var(--color-bg-content);
+  position: sticky;
+  top: 0;
+  color: var(--color-text-header);
+}
+
+.rule-table tbody tr:hover {
+  background-color: var(--color-interactive);
+}
+
+.rule-table tbody tr.selected {
+  background-color: var(--color-bg-popup-filter);
+}
+
+.rule-input {
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.rule-input:focus {
+  outline: none;
+  background-color: var(--color-bg-content);
+}
+
+
+/* Rule-based mapping panel */
+/* 소분류/대분류 셀에서 select가 너비를 가득 채우도록 보정 */
+.rule-table td .rule-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 헤더 컬럼 분리 반영 (대분류/소분류 별도 컬럼) */
+.rule-table th:nth-child(3), .rule-table td:nth-child(3) {
+  text-align: left;
+}
+.rule-table th:nth-child(4), .rule-table td:nth-child(4) {
+  text-align: left;
+}

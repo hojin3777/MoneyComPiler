@@ -1,0 +1,130 @@
+/* Categories */
+.categories-page {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 페이지 자체 스크롤 방지 */
+}
+.categories-grid-container {
+  flex-grow: 1;
+  overflow-x: auto; /* 가로 스크롤 컨테이너 */
+  padding-bottom: 16px; /* 스크롤바 공간 확보 */
+}
+.categories-grid {
+  display: flex; /* 가로 정렬을 위해 flex 사용 */
+  flex-direction: row;
+  gap: 8px;
+  min-width: min-content; /* 컨텐츠가 줄어들지 않도록 */
+  align-items: stretch;
+}
+.category-column-wrapper {
+  width: 200px; /* 컬럼 너비 고정 */
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.category-header {
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+  padding: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.category-header .item-actions {
+  display: none;
+  gap: 12px;
+  position: absolute;
+  right: 12px;
+}
+.category-header:hover .item-actions{
+  display: flex;
+  position: absolute;
+  right: 12px;
+}
+.category-header > span { transition: opacity 0.2s; }
+.category-header:hover > span { opacity: 0.3; }
+.category-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+}
+.category-item {
+  background-color: var(--color-bg-header);
+  padding: 10px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.category-item .item-actions {
+  display: none; /* 평소엔 숨김 */
+  gap: 12px;
+}
+.category-item:hover {
+  background-color: var(--color-interactive);
+}
+.category-item:hover > span {
+  opacity: 0.3; /* ✨ 텍스트 흐리게 */
+}
+.category-item:hover .item-actions {
+  display: flex; /* ✨ 호버 시 아이콘 보임 */
+  position: absolute;
+  right: 12px;
+}
+.action-icon.edit { color: var(--color-accent-positive); } /* 연두색 */
+.action-icon.delete { color: var(--color-accent-red); } /* 빨간색 */
+
+.add-item {
+  justify-content: center;
+  color: var(--color-text-secondary);
+  border: 2px dashed var(--color-interactive);
+  background-color: transparent;
+}
+.add-major-wrapper {
+  align-items: stretch;
+}
+.add-major-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border: 2px dashed var(--color-interactive);
+  background-color: transparent;
+  flex-grow: 1;
+}
+
+/* ✨ 인라인 편집 스타일 */
+.inline-edit-input {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-text-link);
+  color: var(--color-text-primary);
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+.inline-edit-input.header-edit {
+  padding: 16px;
+  font-weight: bold;
+  font-size: inherit;
+  text-align: center;
+}
+
+/* 계좌 구분선 */
+.vertical-divider {
+  width: 1px;
+  background-color: var(--color-border);
+  margin: 0 8px;
+}

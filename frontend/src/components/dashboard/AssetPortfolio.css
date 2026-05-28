@@ -1,0 +1,91 @@
+/* ==================== 탭 버튼 ==================== */
+.tab-buttons-aportfolio {
+    display: flex;
+    gap: 0;
+    /* border: 1px solid var(--color-border); */
+    /* border-radius: 6px; */
+    overflow: hidden;
+}
+
+/* ==================== 카드 콘텐츠 ==================== */
+
+.loading-message-aportfolio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
+/* ==================== 커스텀 툴팁 ==================== */
+.asset-tooltip-aportfolio {
+    background-color: var(--color-bg-inset);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 12px;
+    box-shadow: 0 4px 12px var(--color-bg-overlay-light);
+}
+
+.tooltip-header-aportfolio {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text-primary);
+    margin-bottom: 8px;
+}
+
+.tooltip-total-aportfolio {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+}
+
+.tooltip-change-aportfolio {
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.tooltip-change-aportfolio.positive {
+    color: var(--color-accent-positive);
+}
+
+.tooltip-change-aportfolio.negative {
+    color: var(--color-accent-warning);
+}
+
+.tooltip-divider-aportfolio {
+    height: 1px;
+    background-color: var(--color-border-subtle);
+    margin: 8px 0;
+}
+
+.tooltip-item-aportfolio {
+    display: grid;
+    grid-template-columns: 1fr 1fr 0.2fr;  /* 수정: 3컬럼 그리드 */
+    font-size: 13px;
+    gap: 4px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.tooltip-item-name-aportfolio {
+    /* 계좌명: 왼쪽 정렬 */
+    text-align: left;
+    font-weight: 500;
+}
+
+.tooltip-item-value-aportfolio {
+    /* 금액: 오른쪽 정렬 */
+    text-align: right;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    min-width: 80px;  /* 최소 너비 확보 */
+}
+
+.tooltip-item-percent-aportfolio {
+    /* 퍼센테이지: 오른쪽 정렬 */
+    text-align: left;
+    color: var(--color-text-secondary);
+    min-width: 32px;  /* (XX%) 고정 너비 */
+}

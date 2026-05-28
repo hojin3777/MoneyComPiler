@@ -1,0 +1,79 @@
+.image-preview-popup {
+  position: fixed;
+  max-width: 400px;
+  max-height: 100vh;
+  background-color: var(--color-bg-app);
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px var(--color-bg-overlay-medium);
+  z-index: 100;
+  /* 2. padding 제거, 내부에서 처리 */
+  display: flex;
+  flex-direction: column; /* 2. 헤더와 컨텐츠를 수직으로 배치 */
+  transition: opacity 0.15s ease-in-out;
+}
+
+/* 2. 드래그 가능한 헤더 스타일 */
+.image-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--color-bg-content);
+  border-bottom: 1px solid var(--color-border);
+  cursor: grab;
+  border-top-left-radius: 11px;
+  border-top-right-radius: 11px;
+  transition: background-color 0.2s;
+}
+.image-preview-header:hover,
+.image-preview-header:active {
+  cursor: grabbing;
+  background-color: var(--color-bg-header);
+}
+
+.image-preview-filename {
+  font-size: 1em;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 2. 이미지 컨텐츠 영역 */
+.image-preview-content {
+  padding: 16px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.image-preview-popup img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* 2. 닫기 버튼 위치 및 스타일 조정 */
+.image-preview-close-btn {
+  position: static; /* 헤더 안으로 이동 */
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  margin-left: 12px; /* 파일명과 간격 */
+}
+
+.image-preview-close-btn:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
