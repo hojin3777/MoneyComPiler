@@ -90,12 +90,6 @@ print(f"RESOURCE_PATH: {RESOURCE_PATH}")
 DB_FOLDER = database.get_data_path()  # DB_FOLDER 정의
 os.makedirs(DB_FOLDER, exist_ok=True)
 
-# ****** 업로드 폴더 설정 ******
-UPLOAD_ROOT = str(Path.home() / '.moneyComPiler' / 'uploads')
-UPLOAD_FOLDER = os.path.join(UPLOAD_ROOT)
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 # DB 경로 전역 변수
 DB_PATH = database.get_db_path()
 
@@ -135,7 +129,11 @@ except Exception as e:
 
 # 1. OCR 서비스 초기화
 print("Initializing OCR service...")
-UPLOAD_FOLDER = os.path.join(DB_FOLDER, 'uploads')
+# ****** 업로드 폴더 설정 ******
+UPLOAD_ROOT = str(Path.home() / '.moneyComPiler' / 'uploads')
+UPLOAD_FOLDER = os.path.join(UPLOAD_ROOT)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 device = get_preferred_torch_device()
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -429,6 +427,10 @@ def set_data_path():
         return jsonify({"error": "path is required"}), 400
     database.set_data_path(data['path'])
     return jsonify({"message": "saved"})
+
+@app.route('/api/settings/data-path/default', methods=['GET'])
+def get_default_data_path():
+    return jsonify({"path": database.get_default_data_path()})
 
 @app.route('/api/settings/data-path/move', methods=['POST'])
 def move_data_path():

@@ -119,7 +119,7 @@ function resolveAppIconPath() {
 
     return IS_WINDOWS
         ? path.join(__dirname, '..', 'public', 'icon.ico')
-        : path.join(__dirname, '..', 'dist', 'icon.icns');
+        : path.join(__dirname, '..', 'public', 'icon.icns');
 }
 
 // ****** Python 백엔드 관리 ******
@@ -253,6 +253,48 @@ function startPythonBackend() {
     pythonProcess.on('close', (code) => {
         console.log(`[EXIT] Python process exited with code ${code}`);
         fs.appendFileSync(logFilePath, `[EXIT] Python process exited with code ${code}\n`);
+    });
+}
+
+function terminatePythonProcess(timeoutMs = 3000) {
+    return new Promise((resolve) => {
+        if (!pythonProcess) {
+            resolve();
+            return;
+        }
+
+        const proc = pythonProcess;
+        let finished = false;
+
+        const done = () => {
+            if (finished) return;
+            finished = true;
+            resolve();
+        };
+
+        const timer = setTimeout(() => {
+            try {
+                if (proc && !proc.killed) {
+                    proc.kill('SIGKILL');
+                }
+            } catch (error) {
+                console.error('Failed to SIGKILL Python process:', error);
+            }
+            done();
+        }, timeoutMs);
+
+        proc.once('exit', () => {
+            clearTimeout(timer);
+            done();
+        });
+
+        try {
+            proc.kill('SIGTERM');
+        } catch (error) {
+            clearTimeout(timer);
+            console.error('Failed to SIGTERM Python process:', error);
+            done();
+        }
     });
 }
 
@@ -394,6 +436,7 @@ ipcMain.handle('get-default-data-path', async () => {
 });
 
 ipcMain.handle('app-relaunch', async () => {
+  await terminatePythonProcess();
   app.relaunch();
   app.exit(0);
 });

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ConfirmPopup from '../components/ConfirmPopup';
+import { FaUndo } from 'react-icons/fa'
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -44,6 +45,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     if (!result?.canceled && result?.path) {
       setDataPath(result.path);
     }
+  };
+
+  const handlePathReset = async () => {
+    setAlertInfo({
+      isOpen: true,
+      type: 'confirm',
+      message: '저장 경로를 기본값으로 초기화하시겠습니까?',
+      onConfirm: async () => {
+        const res = await fetch(`${API_BASE_URL}/api/settings/data-path/default`);
+        const json = await res.json();
+        setDataPath(json.path);
+        setAlertInfo(prev => ({ ...prev, isOpen: false }));
+
+        if(!res.ok){
+          console.error('기본 경로 불러오기 실패:', json?.error || res.statusText || 'unknown error');
+        }
+      },
+      onCancel: () => {
+        setAlertInfo(prev => ({ ...prev, isOpen: false }));
+      },
+    });
   };
 
   // 저장 버튼 클릭 시 설정 저장
@@ -205,6 +227,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
               <div className="settings-row">
                 <div className="settings-label">저장 경로</div>
                 <div className="settings-field">
+                  <button className="settings-browse-btn" onClick={handleBrowse}>
+                    경로 선택
+                  </button>
                   <input
                     className="settings-input"
                     type="text"
@@ -212,9 +237,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     onChange={(e) => setDataPath(e.target.value)}
                     placeholder="경로를 입력하세요"
                   />
-                  <button className="settings-browse-btn" onClick={handleBrowse}>
-                    경로 선택
-                  </button>
+                  <button className="settings-browse-btn" onClick={handlePathReset} title="Reset to Default"><FaUndo /></button>
                 </div>
               </div>
             </div>

@@ -3,9 +3,9 @@
 <summary>TODO</summary>
 
 - TODOOOO: 카테고리 대분류 삭제할때 소분류와 달리 검증하지 않는 문제
-- TODO: 패키지 버전 재시작 로직 개선(refresh 기반으로 최소 동작 보장 등)
-- TODO: 데이터 경로 원복(리셋) 버튼 추가
+- TODO: 윈도우 버전 torch 라이브러리 왜이렇게 큰지 보기
 
+좀 먼 일
 - TODO: 딥러닝 모델 ONNX 마이그레이션 및 테스트
 - TODO: GPU감지 UI 추가 및 설치 과정에서 CUDA 드라이버 설치 유도
 - TODO: 자동 업데이트 기능 추가
@@ -14,6 +14,15 @@
 </details>
 
 ## 2026년
+
+### 0530
+- TODO Resolves
+    - TODO: 패키지 버전 재시작 로직 개선(refresh 기반으로 최소 동작 보장 등), dev버전은 그냥 알아서 껐다켜자
+        - relaunch시 python 프로세스 종료 후 재시작하도록 구성
+    - TODO: 데이터 경로 원복(리셋) 버튼 추가
+        - 기본 경로 API 신설 및 초기화 확인 팝업 추가
+- MPS동작 확인: YOLO/BERT 디바이스 및 모델 경로 로그 출력 추가
+- OCR 모듈 경로 정리: 개발환경 pororo 모듈 경로 계산 수정
 
 ### 0528
 - repo분리

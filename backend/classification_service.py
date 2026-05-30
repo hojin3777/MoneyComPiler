@@ -110,6 +110,7 @@ def initialize_classifier():
         raise FileNotFoundError("업종 분류 모델 또는 라벨 파일을 찾을 수 없습니다. 경로를 확인하세요.")
 
     device = get_preferred_torch_device()
+    print(f"[BERT] device: {device}, model_weights_path: {MODEL_WEIGHTS_PATH}, label_map_path: {LABEL_MAP_PATH}")
     
     # 1. 라벨 맵 로드
     with open(LABEL_MAP_PATH, 'rb') as f:

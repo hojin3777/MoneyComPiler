@@ -26,7 +26,7 @@ def get_pororo_path():
         pororo_path = os.path.join(resource_path, 'pororo_easyocr_main')
     else:
         # 개발 환경
-        pororo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'pororo_easyocr_main'))
+        pororo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'pororo_easyocr_main'))
     
     print(f"Pororo 경로: {pororo_path}")
     
@@ -76,7 +76,8 @@ class YOLOv8_OCR_Predictor:
         self.device = get_preferred_torch_device()
         self.model = YOLO(model_path)
         self.model.to(self.device)
-        self.ocr_reader = EasyPororoOcr(gpu=(self.device == 'cuda'))
+        self.ocr_reader = EasyPororoOcr(gpu=self.device)
+        print(f"[YOLO] device: {self.device}, model_path: {model_path}")
 
     def detect_only(self, image, conf_threshold=0.5):
         results = self.model.predict(image, conf=conf_threshold, verbose=False)

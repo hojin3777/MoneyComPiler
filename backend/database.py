@@ -55,6 +55,9 @@ def set_data_path(path_value: str):
     conn.commit()
     conn.close()
 
+def get_default_data_path():
+    return str(APP_DIR)
+
 def get_db_path():
     app_data_dir = get_app_data_dir()
     app_data_dir.mkdir(parents=True, exist_ok=True)
