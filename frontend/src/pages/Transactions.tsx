@@ -103,8 +103,39 @@ const Transactions = () => {
   const [ocrPreviewRows, setOcrPreviewRows] = useState<any[]>([]);
   const [ocrPreviewOpen, setOcrPreviewOpen] = useState(false);
   const [ocrLoading, setOcrLoading] = useState(false);
-  const [ocrLoadingText, setOcrLoadingText] = useState('딥러닝 추출중');
+  //const [ocrLoadingText, setOcrLoadingText] = useState('딥러닝 추출중');
+  const [ocrCurrentImgIdx, setOcrCurrentImgIdx] = useState(0); // 현재 이미지 인덱스
+  const [ocrTotalImgs, setOcrTotalImgs] = useState(0);         // 전체 이미지 개수
+  const [loadingDots, setLoadingDots] = useState('');          // 점 애니메이션 전용 관리
 
+  const [ocrProgress, setOcrProgress] = useState(0);
+  const [ocrStage, setOcrStage] = useState(''); // yolo, ocr, missing, bert
+  const [ocrEtaMs, setOcrEtaMs] = useState<number | null>(null);
+  const ocrEtaRef = useRef<number | null>(null);
+  const [ocrJobId, setOcrJobId] = useState<string | null>(null);
+  const ocrStreamRef = useRef<EventSource | null>(null);
+  const STAGE_LABELS ={
+    yolo: 'YOLO 탐지',
+    ocr: 'OCR 추출',
+    missing: '누락값 보정',
+    bert: '카테고리 분류',
+    done_file: '이미지 정리',
+  } as const;
+  type StageKey = keyof typeof STAGE_LABELS;
+  // ETA 계산용 refs
+  const etaTimerRef = useRef<number | null>(null);
+  const etaRemainingRef = useRef<number | null>(null);
+  const jobStartRef = useRef<number | null>(null);
+  const completedWeightRef = useRef<number>(0);
+  const totalImagesRef = useRef<number | null>(null);
+  const initialYoloUnitMsRef = useRef<number | null>(null);
+
+  // 스테이지 순서/가중치
+  const STAGE_ORDER = ['yolo', 'ocr', 'missing', 'bert'] as const;
+  const STAGE_WEIGHTS = { yolo: 1, ocr: 5, missing: 7, bert: 1 } as const;
+  const TOTAL_WEIGHT = 1 + 5 + 7 + 1;
+
+  
   // 내역입력 폼 모달 관련 state
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [insertedCount, setInsertedCount] = useState(0);
@@ -192,6 +223,16 @@ const Transactions = () => {
       setLastInsertedFromFormId(null);
     }
   }, [lastInsertedFromFormId]);
+
+  // ******* Stream Close *******
+  useEffect(() => {
+    return () => {
+      if (ocrStreamRef.current) {
+        ocrStreamRef.current.close();
+        ocrStreamRef.current = null;
+      }
+    };
+  }, []);
 
 
   // ******* 데이터 로딩 *******
@@ -779,27 +820,174 @@ const Transactions = () => {
 
 
   // ******* 딥러닝 자동입력 관련 핸들러 *******
+  const startEtaTicker = () => {
+  if (etaTimerRef.current != null) return;
+    etaTimerRef.current = window.setInterval(() => {
+      if (etaRemainingRef.current == null) return;
+      etaRemainingRef.current = Math.max(0, etaRemainingRef.current - 1000);
+      setOcrEtaMs(etaRemainingRef.current);
+    }, 1000);
+  };
+
+  const stopEtaTicker = () => {
+    if (etaTimerRef.current != null) {
+      window.clearInterval(etaTimerRef.current);
+      etaTimerRef.current = null;
+    }
+  };
+
   const handleOcrUpload = async (files: File[]) => {
     setOcrModalOpen(false);
     setOcrLoading(true);
+    setOcrProgress(0);
+    setOcrStage('');
+    setOcrEtaMs(null);
+    setOcrCurrentImgIdx(0);
+    setOcrTotalImgs(0);
+
+    // ETA 초기화 
+    etaRemainingRef.current = null;
+    jobStartRef.current = Date.now();
+    completedWeightRef.current = 0;
+    totalImagesRef.current = null;
+    initialYoloUnitMsRef.current = null;
+    stopEtaTicker();
+
     try {
       const formData = new FormData();
       files.forEach(f => formData.append('images', f)); // 반드시 'images'!
-      const res = await fetch(`${API_BASE_URL}/api/ocr/transactions`, {
+
+      const startRes = await fetch(`${API_BASE_URL}/api/ocr/transactions/start`, {
         method: 'POST',
         body: formData,
       });
-      if (!res.ok) throw new Error('API 요청 실패');
-      const data = await res.json();
-      setOcrPreviewRows(data);
-      setOcrPreviewOpen(true);
+      if (!startRes.ok) throw new Error('OCR 시작 실패');
+      const { job_id } = await startRes.json();
+      setOcrJobId(job_id);
+
+      if (ocrStreamRef.current) {
+        ocrStreamRef.current.close();
+      }
+
+      const stream = new EventSource(`${API_BASE_URL}/api/ocr/transactions/stream/${job_id}`);
+      ocrStreamRef.current = stream;
+
+      stream.addEventListener('progress', (event) => {
+        const payload = JSON.parse((event as MessageEvent).data);
+        const stage = String(payload.stage || '');
+        const idx = Number(payload.index || 0);   // 1-based
+        const total = Number(payload.total || 0);
+
+        if (total > 0){
+          totalImagesRef.current = total;
+          setOcrTotalImgs(total);
+        }
+        setOcrCurrentImgIdx(idx);
+
+        // 누적 기반 ETA 산정
+        if (stage in STAGE_WEIGHTS && totalImagesRef.current) {
+          // 남은 가중치 절대값 계산 (중복 누적 오류 방지)
+          const stageIdx = STAGE_ORDER.indexOf(stage as any);
+          const remainingWeightInThisImage =
+            stageIdx >= 0 ? STAGE_ORDER.slice(stageIdx + 1).reduce((s, k) => s + STAGE_WEIGHTS[k], 0) : 0;
+
+          const remainingImages = Math.max(0, totalImagesRef.current - idx);
+          const remainingWeight = remainingImages * TOTAL_WEIGHT + remainingWeightInThisImage;
+          
+          // 전체 가중치 - 남은 가중치 = 현재까지 진행/완료된 가중치
+          const currentCompletedWeight = (totalImagesRef.current * TOTAL_WEIGHT) - remainingWeight;
+
+          // 동적 하드웨어 속도 측정
+          if (initialYoloUnitMsRef.current === null) {
+            if (idx === 1 && stage === 'yolo') {
+              // 첫 이미지 YOLO 단계: 아직 기준 속도를 측정 중이므로 ETA를 띄우지 않고 건너뜀!
+            } else {
+              // YOLO 단계가 끝나고 다음 단계(ocr 등)로 넘어간 순간! 즉, 측정 완료 시점.
+              const yoloElapsed = Math.max(1, Date.now() - (jobStartRef.current ?? Date.now()));
+              const coldStartDiscount = 0.5;
+              initialYoloUnitMsRef.current = yoloElapsed * coldStartDiscount / STAGE_WEIGHTS.yolo;
+            }
+          }
+
+          // 기준 속도(첫 YOLO 측정값)가 확정된 이후부터만 ETA 표기 시작
+          if (initialYoloUnitMsRef.current !== null) {
+            const now = Date.now();
+            const elapsedMs = Math.max(1, now - (jobStartRef.current ?? now));
+            
+            // 동적 베이지안 평균 
+            const PRIOR_WEIGHT = TOTAL_WEIGHT; // 1장 분량을 가상 기본 데이터로
+            const dynamicUnitMs = initialYoloUnitMsRef.current;
+            const PRIOR_TIME = PRIOR_WEIGHT * dynamicUnitMs;
+
+            const globalUnitMs = (PRIOR_TIME + elapsedMs) / (PRIOR_WEIGHT + currentCompletedWeight);
+
+            if (remainingWeight > 0) {
+              const rawNextEta = Math.max(1000, Math.ceil(globalUnitMs * remainingWeight));
+              const currentEta = etaRemainingRef.current;
+              let nextEta = rawNextEta;
+
+              if (currentEta !== null) {
+                if (rawNextEta <= currentEta) {
+                  // 단축될 때는 쿨하게 바로 적용
+                  nextEta = rawNextEta;
+                } else {
+                  // 폭증할 때만 비대칭 제한 (갑자기 튀는 현상 방지)
+                  const maxAllowedEta = currentEta * 1.15;
+                  const minAllowedEta = currentEta + 2000;
+                  const upperLimit = Math.max(maxAllowedEta, minAllowedEta);
+                  nextEta = Math.min(rawNextEta, upperLimit);
+                }
+              } else {
+                // 최초 시점엔 하드코딩이 아닌 내 기기 YOLO 속도 기반의 시간으로 세팅됨
+                nextEta = rawNextEta;
+              }
+
+              etaRemainingRef.current = Math.round(nextEta);
+              setOcrEtaMs(etaRemainingRef.current);
+              startEtaTicker();
+            }
+          }
+        }
+
+        // progress / stage label 유지
+        setOcrProgress(payload.progress ?? 0);
+        setOcrStage(stage);
+
+        // const stageKey = (payload.stage as StageKey | undefined);
+        // const stageLabel = stageKey ? STAGE_LABELS[stageKey] : '딥러닝 추출중';
+        // setOcrLoadingText(stageLabel);
+      });
+
+      stream.addEventListener('done', async () => {
+        stream.close();
+        ocrStreamRef.current = null;
+
+        const resultRes = await fetch(`${API_BASE_URL}/api/ocr/transactions/result/${job_id}`);
+        if (!resultRes.ok) throw new Error('OCR 결과 로딩 실패');
+        const data = await resultRes.json();
+        setOcrPreviewRows(data);
+        setOcrPreviewOpen(true);
+        setOcrLoading(false);
+        stopEtaTicker();
+        etaRemainingRef.current = null;
+      });
+
+      stream.addEventListener('error', (event) => {
+        console.error('OCR 스트림 에러:', event);
+        alert('OCR 처리 중 오류가 발생했습니다.');
+        stream.close();
+        ocrStreamRef.current = null;
+        setOcrLoading(false);
+        stopEtaTicker();
+        etaRemainingRef.current = null;
+      });
     } catch (e) {
-      alert('OCR 추출에 실패했습니다: ' + (e as Error).message);
+      alert('OCR 처리에 실패했습니다: ' + (e as Error).message);
       console.error(e);
-    } finally {
       setOcrLoading(false);
     }
   };
+
   // 1. 로딩 애니메이션을 위한 useEffect 추가
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -807,12 +995,39 @@ const Transactions = () => {
       let dotCount = 0;
       interval = setInterval(() => {
         dotCount = (dotCount + 1) % 4; // 0, 1, 2, 3
-        const dots = '.'.repeat(dotCount);
-        setOcrLoadingText(`딥러닝 추출중${dots}`);
+        setLoadingDots('.'.repeat(dotCount));
       }, 400);
+    } else {
+      setLoadingDots('');
     }
     return () => clearInterval(interval); // 컴포넌트 언마운트 또는 ocrLoading이 false가 되면 인터벌 정리
   }, [ocrLoading]);
+
+  // OCR 진행 강제 취소 핸들러
+  const handleCancelOcr = async () => {
+    if (ocrJobId) {
+      try{
+        await fetch(`${API_BASE_URL}/api/ocr/transactions/cancel/${ocrJobId}`, { method: 'POST' });
+      } catch (e) {
+        console.error('OCR 취소 요청 실패:', e);
+      }
+    }
+
+    if (ocrStreamRef.current) {
+      ocrStreamRef.current.close();
+      ocrStreamRef.current = null;
+    }
+    setOcrLoading(false);
+    stopEtaTicker();
+    etaRemainingRef.current = null;
+
+    setOcrProgress(0);
+    setOcrStage('');
+    setOcrEtaMs(null);
+    setOcrCurrentImgIdx(0);
+    setOcrTotalImgs(0);
+  }
+
 
   // OCR 미리보기 삽입 핸들러
   const handleOcrInsert = (rowsToInsert: OcrPreviewRow[]) => {
@@ -1091,9 +1306,30 @@ const Transactions = () => {
               {ocrLoading && (
                 <div className="ocr-loading-overlay">
                   <div className="ocr-loading-box">
-                    <div className='loading-spinner'></div>
-                    <span>&nbsp;{ocrLoadingText}</span>
-                    {/* 필요시 스피너 아이콘 등 추가 */}
+                    <div className="ocr-loading-row">
+                      <div className='loading-spinner'></div>
+                      <span className="ocr-loading-text" style={{ position: 'relative' }}>
+                        &nbsp;
+                        {ocrTotalImgs > 0 && `[${ocrCurrentImgIdx}/${ocrTotalImgs}] `}
+                        {ocrStage ? `${STAGE_LABELS[ocrStage as StageKey]}` : '딥러닝 추출중'}
+                        <span style={{position: 'absolute', left: '100%'}}>
+                          {loadingDots}
+                        </span>
+                      </span>
+                    </div>
+                    
+                    <div className="ocr-progress">
+                      <div className="ocr-progress-meta">
+                        <span>{Math.round(ocrProgress * 100)}%</span>
+                      </div>
+                      <div className="ocr-progress-bar">
+                        <div className="ocr-progress-fill" style={{ width: `${Math.round(ocrProgress * 100)}%` }} />
+                      </div>
+                      {ocrEtaMs !== null && <span className="ocr-progress-meta">{Math.round(ocrEtaMs / 1000)}s</span>}
+                    </div>
+                    <button className="ocr-loading-cancel-btn" onClick={handleCancelOcr}>
+                      취소
+                    </button>
                   </div>
                 </div>
               )}

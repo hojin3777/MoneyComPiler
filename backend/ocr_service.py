@@ -4,6 +4,7 @@ from PIL import Image, ImageFont
 import os
 import sys
 import cv2
+import time
 import numpy as np
 import re
 from collections import defaultdict
@@ -114,15 +115,20 @@ def is_valid_ocr_text(text):
     return True
 
 
-def run_hybrid_prediction(image, predictor_instance, conf_threshold=0.4):
+def run_hybrid_prediction(image, predictor_instance, conf_threshold=0.4, on_stage=None):
     """
     YOLO 우선 탐지 후, OCR로 텍스트를 채우고 누락된 영역을 선별적으로 재탐지하는 정교한 하이브리드 예측 로직.
     (탐지 영역 OCR 최적화 버전)
     """
     # 1. YOLO 우선 탐지
+    # yolo_start = time.perf_counter()
     yolo_dets = predictor_instance.detect_only(image, conf_threshold=conf_threshold)
+    # yolo_elapsed = int((time.perf_counter() - yolo_start) * 1000)
+    # print(f"[YOLO] detections: {len(yolo_dets)}, elapsed: {yolo_elapsed}ms")
+    if on_stage: on_stage("yolo") # yolo 완료
     if not yolo_dets: return []
     # 2. 탐지 영역 일괄 OCR
+    # ocr_start = time.perf_counter()
     yolo_predictions = []
     if yolo_dets:
         cropped_images_with_info = []
@@ -151,7 +157,12 @@ def run_hybrid_prediction(image, predictor_instance, conf_threshold=0.4):
                 text = ' '.join(texts_for_this_crop)
                 original_det = cropped_images_with_info[i]['original_det']
                 yolo_predictions.append({'label': original_det['label'], 'text': text.strip(), 'box': original_det['box'], 'confidence': f"{original_det['confidence']:.2f}", 'source': 'YOLO-Primary'})
+    # ocr_elapsed = int((time.perf_counter() - ocr_start) * 1000)
+    # print(f"[OCR] OCR results: {len(yolo_predictions)}, elapsed: {ocr_elapsed}ms")
+    if on_stage: on_stage("ocr") # ocr 완료
+
     # 3. 누락된 텍스트 탐색
+    # missing_start = time.perf_counter()
     cv_image_bgr = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
     predictor_instance.ocr_reader.run_ocr(cv_image_bgr, debug=False)
     full_ocr_results = predictor_instance.ocr_reader.get_ocr_result()
@@ -187,6 +198,9 @@ def run_hybrid_prediction(image, predictor_instance, conf_threshold=0.4):
                 if ocr_info in missed_ocr: missed_ocr.remove(ocr_info)
     # 5. 최종 결과 종합
     final_predictions = sorted(yolo_predictions + additional_predictions, key=lambda p: (p['box'][1], p['box'][0]))
+    # missing_elapsed = int((time.perf_counter() - missing_start) * 1000)
+    # print(f"[MISSING] missed OCR: {len(missed_ocr)}, additional detections: {len(additional_predictions)}, elapsed: {missing_elapsed}ms")
+    if on_stage: on_stage("missing") # 최종 결과 준비 완료
     return final_predictions
 
 def structure_transactions_sequentially(predictions):
@@ -311,17 +325,20 @@ def initialize_predictor(model_path):
     if predictor is None:
         predictor = YOLOv8_OCR_Predictor(model_path=model_path)
 
-def process_image_to_transactions(image_bytes):
+def process_image_to_transactions(image_bytes, on_stage=None):
     """이미지 바이트를 입력받아 최종 거래 내역(JSON)을 반환합니다."""
     if predictor is None:
         raise Exception("OCR 예측기가 초기화되지 않았습니다.")
 
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    predictions = run_hybrid_prediction(image, predictor)
+    predictions = run_hybrid_prediction(image, predictor, on_stage=on_stage)
     df = structure_transactions_sequentially(predictions)
 
     if df.empty or 'merchant' not in df.columns:
         return []
+
+    # BERT 타이밍
+    # bert_start = time.perf_counter()
 
     # 1. 자동보정 및 룰베이스 DB 미리 fetch (mapping_utils 사용)
     ocr_corrections = {row['original_text']: row['corrected_text'] for row in mapping_utils.get_all_ocr_corrections()}
@@ -370,5 +387,8 @@ def process_image_to_transactions(image_bytes):
         transaction['minor_category'] = minor_name
         
         results.append(transaction)
-
+        # bert_elapsed = int((time.perf_counter() - bert_start) * 1000)
+        # print(f"[RESULT] bert_total_ms: {bert_elapsed}ms, rows: {len(results)}, current_transaction: {transaction}")
+        
+    if on_stage: on_stage("bert")
     return results

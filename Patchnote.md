@@ -4,6 +4,9 @@
 
 - TODOOOO: 카테고리 대분류 삭제할때 소분류와 달리 검증하지 않는 문제
 - TODO: 윈도우 버전 torch 라이브러리 왜이렇게 큰지 보기
+- TODO: 리셋 했을때 바로 저장까지 해버리지 않도록 수정
+- TODO: apple developer 등록 무료?
+- TODO: 예빈맥에서 딥러닝 기능 사용시 500 Internal server error 찍힘
 
 좀 먼 일
 - TODO: 딥러닝 모델 ONNX 마이그레이션 및 테스트
@@ -15,6 +18,18 @@
 
 ## 2026년
 
+### 0614
+- TODO: 딥러닝 추론 cancel 기능 및 process bar?(stage별로 무거운 애한테 가중치 적용). ETA 가중치는 yolo ocr 재탐지 bert = 1:5:7:1
+    - Progress Bar 추가: SSE 스트림의 stage(yolo, ocr, missing, bert)마다 부여된 가중치를 기준으로 현재 딥러닝 처리 진행도를 퍼센트 및 애니메이션 프로그레스 바 형태로 시각화
+    - ETA(남은 시간) 로직 구현: 
+        - 단순 비율 연산으로 인해 초기 ETA가 과도하게 산정되는 이슈 해결
+        - 동적 베이지안 평균(Dynamic Bayesian average)을 사용하여 첫 번째 이미지의 YOLO 연산 소요 시간 기준으로 ETA 초기 가중치를 재산정하는 로직 구현 (초기 cold start 시간은 0.5 discount 처리)
+        - 이전 소요 시간 대비 1.15배 이상 급증하지 않도록 상단 제약선 설정하여 튀는 현상 방지
+        - UI적으로 안정된 실시간 Countdown Ticker 기능 개발
+    - OCR 연산 강제 취소(Cancel) 기능 및 백엔드 연동:
+        - 진행 중 파이프라인(GPU 등 백엔드 작업)을 중지하기 위한 `/api/ocr/transactions/cancel/<job_id>` API를 신설
+        - 프론트엔드의 취소 팝업 버튼과 연결하여, 클릭 시 즉시 SSE 연결 종료, 프론트엔드 state 정리, 서버 GPU 파이프라인 강제 예외 처리 및 정리 프로세스로 돌아가도록 구현
+        
 ### 0530
 - TODO Resolves
     - TODO: 패키지 버전 재시작 로직 개선(refresh 기반으로 최소 동작 보장 등), dev버전은 그냥 알아서 껐다켜자

@@ -10,7 +10,11 @@ if CURRENT_DIR not in sys.path:
 import sqlite3
 import uuid
 import torch
-from flask import Flask, jsonify, request, send_from_directory
+import time
+import json
+import threading
+import queue
+from flask import Flask, jsonify, request, send_from_directory, Response, stream_with_context
 from flask_cors import CORS
 from datetime import datetime
 from werkzeug.utils import secure_filename
@@ -25,6 +29,7 @@ import transaction_utils
 import mapping_utils
 import dashboard_utils
 import pandas as pd
+
 
 
 # ****** 디바이스 선택 헬퍼 ******
@@ -48,6 +53,163 @@ def get_model_path(filename):
     model_path = models_dir / filename
     print(f"Model path for '{filename}': {model_path}")
     return str(model_path)
+
+
+
+# SSE: OCR 비동기 작업 저장소
+OCR_JOBS = {}
+OCR_JOBS_LOCK = threading.Lock()
+
+# SSE: 진행률 가중치 (이미지 1장 기준)
+OCR_STAGE_WEIGHTS = {
+    "yolo": 1.0,
+    "ocr": 5.0,
+    "missing": 7.0,
+    "bert": 1.0,
+}
+OCR_STAGE_TOTAL = sum(OCR_STAGE_WEIGHTS.values())
+
+def _sse_event(event, data):
+    # SSE 표준 포맷
+    payload = json.dumps(data, ensure_ascii=True)
+    return f"event: {event}\ndata: {payload}\n\n"
+
+def _get_job(job_id):
+    with OCR_JOBS_LOCK:
+        return OCR_JOBS.get(job_id)
+
+def _create_job(file_paths):
+    job_id = str(uuid.uuid4())
+    job = {
+        "id": job_id,
+        "status": "queued",
+        "progress": 0.0,
+        "eta_ms": None,
+        "results": [],
+        "error": None,
+        "events": queue.Queue(),
+        "created_at": time.time(),
+        "total_files": len(file_paths),
+        "file_paths": file_paths,
+        "canceled": False,
+    }
+    with OCR_JOBS_LOCK:
+        OCR_JOBS[job_id] = job
+    return job_id
+
+def _push_event(job, event, payload):
+    payload["job_id"] = job["id"]
+    job["events"].put((event, payload))
+
+def _estimate_eta_ms(job):
+    # 단순 ETA: 완료 이미지 수 기반
+    total = max(1, job["total_files"])
+    done = int(job["progress"] * total)
+    elapsed = time.time() - job["created_at"]
+    if done <= 0:
+        return None
+    per_image = elapsed / done
+    remaining = max(0, total - done)
+    return int(per_image * remaining * 1000)
+
+def _run_ocr_job(job_id):
+    job = _get_job(job_id)
+    if not job:
+        return
+
+    job["status"] = "running"
+    _push_event(job, "status", {"status": job["status"]})
+
+    try:
+        all_results = []
+        total = job["total_files"]
+
+        for idx, filepath in enumerate(job["file_paths"], start=1):
+            if job.get("canceled"):
+                job["status"] = "canceled"
+                _push_event(job, "status", {"status": job["status"]})
+                return
+
+            filename = os.path.basename(filepath)
+            stage_done_weight = 0.0
+            
+            def on_stage(stage_name):
+                if job.get("canceled"):
+                    raise Exception("Job canceled by user")
+                
+                nonlocal stage_done_weight
+                stage_done_weight += OCR_STAGE_WEIGHTS.get(stage_name, 0.0)
+                # 이미지 1장 진행률
+                per_image_progress = stage_done_weight / OCR_STAGE_TOTAL
+                overall_progress = ((idx - 1) + per_image_progress) / total
+
+                job["progress"] = overall_progress
+                job["eta_ms"] = _estimate_eta_ms(job)
+
+                _push_event(job, "progress", {
+                    "stage": stage_name,
+                    "file_name": filename,
+                    "index": idx,
+                    "total": total,
+                    "progress": overall_progress,
+                    "eta_ms": job["eta_ms"],
+                })
+
+            try:
+                with open(filepath, "rb") as f:
+                    image_bytes = f.read()
+
+                transactions = ocr_service.process_image_to_transactions(image_bytes, on_stage=on_stage)
+            except Exception as e:
+                if str(e) == "Job canceled by user":
+                    job["status"] = "canceled"
+                    _push_event(job, "status", {"status": job["status"]})
+                    print("OCR job canceled by user.")
+                    return
+                raise
+            
+
+            for tx in transactions:
+                tx["file_name"] = filename
+
+            all_results.extend(transactions)
+
+            job["progress"] = idx / total
+            job["eta_ms"] = _estimate_eta_ms(job)
+            _push_event(job, "progress", {
+                "stage": "done_file",
+                "file_name": filename,
+                "index": idx,
+                "total": total,
+                "progress": job["progress"],
+                "eta_ms": job["eta_ms"],
+            })
+
+        cleaned_results = [
+            {k: (None if pd.isna(v) else v) for k, v in tx.items()}
+            for tx in all_results
+        ]
+        job["results"] = cleaned_results
+        job["status"] = "done"
+        job["progress"] = 1.0
+
+        _push_event(job, "done", {
+            "status": job["status"],
+            "progress": job["progress"],
+            "result_count": len(cleaned_results),
+        })
+
+    except Exception as e:
+        job["status"] = "error"
+        job["error"] = str(e)
+        _push_event(job, "error", {
+            "status": job["status"],
+            "message": job["error"],
+        })
+
+
+
+
 
 # Flask 앱 초기화
 app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
@@ -493,11 +655,16 @@ def api_ocr_transactions():
         return jsonify({'error': 'No images uploaded'}), 400
 
     files = request.files.getlist('images')
+    # total_files = len(files)
     all_results = []
 
-    for file in files:
+    for idx, file in enumerate(files, start=1):
+        # image_start = time.perf_counter() # 이미지 처리 시작 시간
+
         # 1. 이미지 파일을 임시 저장
         filename = secure_filename(file.filename)
+        # print(f"[OCR_IMG_START] idx: {idx}/{total_files}, filename: {filename}")
+
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.seek(0) # 스트림 위치 초기화
         file.save(filepath)
@@ -512,6 +679,7 @@ def api_ocr_transactions():
             tx['file_name'] = filename
         
         all_results.extend(transactions)
+        # img_elapsed = int((time.perf_counter()  s}, filename: {filename}, elapsed: {img_elapsed}ms")
         
     cleaned_results = [
         {k: (None if pd.isna(v) else v) for k, v in tx.items()}
@@ -519,6 +687,89 @@ def api_ocr_transactions():
     ]
     
     return jsonify(cleaned_results)
+
+
+# SSE: OCR 작업 시작
+@app.route("/api/ocr/transactions/start", methods=["POST"])
+def start_ocr_job():
+    if "images" not in request.files:
+        return jsonify({"error": "No images uploaded"}), 400
+
+    files = request.files.getlist("images")
+    if not files:
+        return jsonify({"error": "No images uploaded"}), 400
+
+    # 파일을 업로드 폴더에 먼저 저장하고 경로만 전달
+    saved_paths = []
+    for file in files:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.seek(0)
+        file.save(filepath)
+        saved_paths.append(filepath)
+
+    job_id = _create_job(saved_paths)
+    threading.Thread(target=_run_ocr_job, args=(job_id,), daemon=True).start()
+
+    return jsonify({"job_id": job_id}), 200
+
+# SSE: OCR 진행 스트림
+@app.route("/api/ocr/transactions/stream/<job_id>", methods=["GET"])
+def stream_ocr_job(job_id):
+    job = _get_job(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    def generate():
+        # 초기 상태 1회 전송
+        yield _sse_event("status", {
+            "status": job["status"],
+            "progress": job["progress"],
+            "eta_ms": job["eta_ms"],
+        })
+
+        while True:
+            try:
+                event, payload = job["events"].get(timeout=10)
+                yield _sse_event(event, payload)
+                if event in ("done", "error"):
+                    break
+            except queue.Empty:
+                # keep-alive ping
+                yield _sse_event("ping", {"t": int(time.time())})
+
+    headers = {
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+    }
+    return Response(stream_with_context(generate()), headers=headers, mimetype="text/event-stream")
+
+# SSE: OCR 결과 조회 (스트림 끊김 대비)
+@app.route("/api/ocr/transactions/result/<job_id>", methods=["GET"])
+def get_ocr_job_result(job_id):
+    job = _get_job(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    if job["status"] != "done":
+        return jsonify({
+            "status": job["status"],
+            "progress": job["progress"],
+            "eta_ms": job["eta_ms"],
+            "error": job["error"],
+        }), 202
+
+    return jsonify(job["results"]), 200
+
+@app.route("/api/ocr/transactions/cancel/<job_id>", methods=["POST"])
+def cancel_ocr_job(job_id):
+    job = _get_job(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    job["canceled"] = True
+    return jsonify({"message": "Cancellation requested"}), 200
+
 
 # 1. 저장된 OCR 이미지를 제공하는 엔드포인트 추가
 @app.route('/api/ocr/image/<filename>')
