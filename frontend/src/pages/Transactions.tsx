@@ -111,7 +111,6 @@ const Transactions = () => {
   const [ocrProgress, setOcrProgress] = useState(0);
   const [ocrStage, setOcrStage] = useState(''); // yolo, ocr, missing, bert
   const [ocrEtaMs, setOcrEtaMs] = useState<number | null>(null);
-  const ocrEtaRef = useRef<number | null>(null);
   const [ocrJobId, setOcrJobId] = useState<string | null>(null);
   const ocrStreamRef = useRef<EventSource | null>(null);
   const STAGE_LABELS ={

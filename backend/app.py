@@ -29,10 +29,12 @@ import transaction_utils
 import mapping_utils
 import dashboard_utils
 import pandas as pd
+import ssl
 
 
 
 # ****** 디바이스 선택 헬퍼 ******
+ssl._create_default_https_context = ssl._create_unverified_context
 def get_preferred_torch_device():
     """CUDA가 있으면 CUDA, 그다음 MPS, 마지막에 CPU를 사용합니다."""
     if torch.cuda.is_available():

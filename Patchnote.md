@@ -6,7 +6,6 @@
 - TODO: 윈도우 버전 torch 라이브러리 왜이렇게 큰지 보기
 - TODO: 리셋 했을때 바로 저장까지 해버리지 않도록 수정
 - TODO: apple developer 등록 무료?
-- TODO: 예빈맥에서 딥러닝 기능 사용시 500 Internal server error 찍힘
 
 좀 먼 일
 - TODO: 딥러닝 모델 ONNX 마이그레이션 및 테스트
@@ -29,7 +28,9 @@
     - OCR 연산 강제 취소(Cancel) 기능 및 백엔드 연동:
         - 진행 중 파이프라인(GPU 등 백엔드 작업)을 중지하기 위한 `/api/ocr/transactions/cancel/<job_id>` API를 신설
         - 프론트엔드의 취소 팝업 버튼과 연결하여, 클릭 시 즉시 SSE 연결 종료, 프론트엔드 state 정리, 서버 GPU 파이프라인 강제 예외 처리 및 정리 프로세스로 돌아가도록 구현
-        
+- TODO: 예빈맥에서 딥러닝 기능 사용시 500 Internal server error 찍힘
+    - app.py에서 SSL 인증 우회하여 해결
+
 ### 0530
 - TODO Resolves
     - TODO: 패키지 버전 재시작 로직 개선(refresh 기반으로 최소 동작 보장 등), dev버전은 그냥 알아서 껐다켜자
