@@ -27,7 +27,7 @@ type AlertInfo = {
 const API_BASE_URL = 'http://127.0.0.1:5050'; // 개발 시
 const Categories = () => {
   // vars
-  const protectedCategories = ['고정수입', '유동수입', '이체분류'];
+  const constCategories = ['고정수입', '유동수입', '이체분류'];
   //states
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<CategoriesData>([]);
@@ -55,6 +55,20 @@ const Categories = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [isDirty]); // isDirty 상태가 변경될 때마다 이 효과를 다시 실행
+
+  // ******* 단축키 저장 이벤트 *******
+    useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+          e.preventDefault();
+          if(isDirty){
+            handleSave();
+          }
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isDirty, accounts, categories]);
 
   // ******* 데이터 로딩 *******
   const fetchAllData = async () => {
@@ -111,16 +125,17 @@ const Categories = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(categories),
       });
+      setStatus('Saved successfully.');
       if (!categoriesRes.ok) {
         const errorText = await categoriesRes.text();
+        setStatus('Failed to save categories.');
         console.error('Failed to save categories:', errorText);
         throw new Error(`카테고리 저장 실패: ${categoriesRes.statusText}`);
       }
       const savedCategories = await categoriesRes.json();
       setCategories(savedCategories);
-
       setIsDirty(false);
-      setStatus('Saved successfully.');
+      
       setTimeout(() => setStatus(''), 3000);
     } catch (error) {
       const message = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
@@ -169,7 +184,7 @@ const Categories = () => {
   };
 
   // ******* 계좌 관련 함수 *******
-  // 계좌 추가
+  // *** 계좌 추가 ***
   const addAccount = () => {
     setAlertInfo({
       isOpen: true, type: 'input', message: '새로운 계좌 이름을 입력하세요:', placeholder: '계좌 이름 입력',
@@ -187,7 +202,7 @@ const Categories = () => {
     });
   };
 
-  // 계좌 삭제
+  // *** 계좌 삭제 ***
   const deleteAccount = async (id: number | string) => {
     const account = accounts.find(acc => acc.id === id);
     if (!account) return;
@@ -204,7 +219,7 @@ const Categories = () => {
       const usageCheckResponse = await fetch(`${API_BASE_URL}/api/accounts/usage?id=${id}`)
       const usageData = await usageCheckResponse.json();
       if (usageData.in_use) {
-      // if(false){ // ✨ 테스트용으로 항상 false 처리
+      // if(false){ // 테스트용으로 항상 false 처리
         setAlertInfo({
           isOpen: true,
           type: 'alert',
@@ -226,7 +241,8 @@ const Categories = () => {
       onCancel: () => setAlertInfo({ ...alertInfo, isOpen: false }),
     });
   }
-  // 계좌 편집 완료 처리
+
+  // *** 계좌 편집 완료 처리 ***
   const handleAccountEditCommit = (newValue: string, id: number | string) => {
     const trimmedValue = newValue.trim();
     const originalValue = accounts.find(acc => acc.id === id);
@@ -236,7 +252,8 @@ const Categories = () => {
     }
     setEditing(null);
   };
-  // 계좌 항목 렌더링
+
+  // *** 계좌 항목 렌더링 ***
   const renderAccountItem = (account: Account) => {
     const isEditing = editing?.type === 'account' && editing.id === account.id;
     return isEditing ? (
@@ -261,26 +278,43 @@ const Categories = () => {
   }
 
   // ******* 카테고리 관련 함수 *******
+  // *** 카테고리 초기화 ***
   const handleReset = () => {
     setAlertInfo({
       isOpen: true,
       type: 'destructive',
       title: '카테고리 초기화 경고',
-      message: '모든 계좌와 카테고리를 기본값으로 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.',
+      message: '모든 계좌와 카테고리를 기본값으로 초기화하시겠습니까?\n초기화 전 거래내역 엑셀 백업을 권장합니다.',
       onConfirm: async () => {
         setAlertInfo({ ...alertInfo, isOpen: false });
         setStatus('Resetting...');
-        await fetch(`${API_BASE_URL}/api/initialize-defaults`, { method: 'POST' });
-        await fetchAllData(); // 초기화 후 데이터 다시 불러오기
-
-        setIsDirty(false);
-        setStatus('Reset successfully!');
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/categories/defaults`);
+          const defaultData = await response.json();
+          setCategories(defaultData);
+          setIsDirty(true);
+          setStatus('Reset successfully!');
+        } catch (error) {
+          console.error('Failed to reset categories:', error);
+          setStatus('Failed to reset categories.');
+        }
         setTimeout(() => setStatus(''), 3000);
       },
+      // onConfirm: async () => {
+      //   setAlertInfo({ ...alertInfo, isOpen: false });
+      //   setStatus('Resetting...');
+      //   await fetch(`${API_BASE_URL}/api/initialize-defaults`, { method: 'POST' });
+      //   await fetchAllData(); // 초기화 후 데이터 다시 불러오기
+
+      //   setIsDirty(false);
+      //   setStatus('Reset successfully!');
+      //   setTimeout(() => setStatus(''), 3000);
+      // },
       onCancel: () => setAlertInfo({ ...alertInfo, isOpen: false }),
     });
   };
-  // 대분류 추가
+
+  // *** 대분류 추가 ***
   const addMajorCategory = () => {
     if (categories.length >= 30) return;
     setAlertInfo({
@@ -299,7 +333,8 @@ const Categories = () => {
       onCancel: () => setAlertInfo({ ...alertInfo, isOpen: false }),
     });
   }
-  // 소분류 추가
+
+  // *** 소분류 추가 ***
   const addMinorCategory = (majorid: number | string) => {
     const category = categories.find(c => c.id === majorid);
     if (!category || category.minors.length >= 20) return;
@@ -321,10 +356,39 @@ const Categories = () => {
       onCancel: () => setAlertInfo({ ...alertInfo, isOpen: false }),
     });
   };
-  // 대분류 삭제
-  const deleteMajorCategory = (majorid: number | string) => {
+
+  // *** 대분류 삭제 ***
+  const deleteMajorCategory = async (majorid: number | string) => {
     const category = categories.find(c => c.id === majorid);
-    if (!category || protectedCategories.includes(category.name)) return;
+    if (!category || constCategories.includes(category.name)) return;
+    const isTempMajor = typeof majorid === 'string' && majorid.startsWith('tmp-'); // 임시 대분류는 사용 여부 확인 없이 바로 삭제
+    if (!isTempMajor) {
+      // 기존 소분류가 있는 경우: 사용 중인 항목이 하나라도 있는지 검증
+      const existingMinors = category.minors.filter(minor => !minor.uuid.startsWith('tmp-')); // 임시 항목 제외
+      if (existingMinors.length > 0) {
+        try {
+          const usageChecks = await Promise.all(
+            existingMinors.map(minor => fetch(`${API_BASE_URL}/api/categories/usage?uuid=${minor.uuid}`)
+            .then(res => res.json())
+            .then(data => ({ minor, in_use: data.in_use })))
+          );
+          const usedMinorObj = usageChecks.find(usage => usage.in_use);
+          if(usedMinorObj) {
+            setAlertInfo({
+              isOpen: true,
+              type: 'alert',
+              message: `대분류 '${category.name}' 하위에 거래내역에서 사용 중인\n소분류 '${usedMinorObj.minor.name}' 항목이 있어 삭제할 수 없습니다.`,
+              onConfirm: () => setAlertInfo(prev => ({ ...prev, isOpen: false })),
+            });
+            return;
+          }
+        } catch (error) {
+          console.error('Failed to check category usage:', error);
+          return;
+        }
+      }
+    }
+    // 검증을 통과하거나 임시 대분류인 경우
     setAlertInfo({
       isOpen: true,
       type: 'destructive',
@@ -338,7 +402,8 @@ const Categories = () => {
       onCancel: () => setAlertInfo({ ...alertInfo, isOpen: false }),
     });
   };
-  // 소분류 삭제
+
+  // *** 소분류 삭제 ***
   const deleteMinorCategory = async (majorId: number | string, minorUuid: string) => {
     const majorCategory = categories.find(c => c.id === majorId);
     const minorCategory = majorCategory?.minors.find(m => m.uuid === minorUuid);
@@ -382,7 +447,8 @@ const Categories = () => {
       onCancel: () => setAlertInfo({ ...alertInfo, isOpen: false }),
     });
   };
-  // 카테고리 편집 완료 처리
+
+  // *** 카테고리 편집 완료 처리 ***
   const handleCategoryEditCommit = (newValue: string) => {
     if (!editing || !newValue) {
       setEditing(null);
@@ -411,7 +477,8 @@ const Categories = () => {
     if (isChanged) setIsDirty(true);
     setEditing(null);
   };
-  // 소분류 항목 렌더링
+
+  // *** 소분류 항목 렌더링 ***
   const renderItem = (majorId: number | string, minor: MinorCategory) => {
     const isEditing = editing?.type === 'minor' && editing.majorId === majorId && editing.minorUuid === minor.uuid;
     return isEditing ? (
@@ -433,10 +500,11 @@ const Categories = () => {
       </div>
     );
   };
-  // 대분류 헤더 렌더링
+
+  // *** 대분류 헤더 렌더링 ***
   const renderHeader = (category: CategoryItem) => {
     const isEditing = editing?.type === 'major' && editing.id === category.id;
-    const isProtected = protectedCategories.includes(category.name);
+    const isProtected = constCategories.includes(category.name);
     return isEditing ? (
       <input
         ref={inputRef}

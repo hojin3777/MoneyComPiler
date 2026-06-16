@@ -168,9 +168,38 @@ def save_categories(frontend_data):
                        WHERE uuid = ?''',
                     (minor_name, major_id, minor_order, minor_uuid)
                 )
-
     conn.commit()
     conn.close()
-
-    # ✨ 변경사항이 적용된 최신 목록을 다시 로드하여 프론트엔드에 반환합니다.
+    # 변경사항이 적용된 최신 목록을 다시 로드하여 프론트엔드에 반환합니다.
     return load_categories()
+
+def get_default_categories():
+    """기본 카테고리 구조 반환. 기존 이름과 일치하는 항목은 UUID를 유지."""
+    conn = database.get_db_connection()
+    query = """
+        SELECT mjc.name as major_name, mc.name as minor_name, mc.uuid as minor_uuid, mjc.id as major_id
+        FROM major_categories mjc
+        LEFT JOIN minor_categories mc ON mjc.id = mc.major_category_id
+    """
+    rows = conn.execute(query).fetchall()
+    existing_majors = {row['major_name']: row['major_id'] for row in rows if row['major_id']}
+    existing_minors = {(row['major_name'], row['minor_name']): row['minor_uuid'] for row in rows if row['minor_uuid']}
+    conn.close()
+    
+    
+    defaults = []
+    for major_order, (major_name, minors) in enumerate(DEFAULT_CATEGORIES.items()):
+        major_id = existing_majors.get(major_name, f"tmp-{uuid.uuid4()}")  # 기존 대분류 이름과 일치하면 ID 유지, 아니면 임시 ID 생성
+        minor_list = []
+        for minor_order, minor_name in enumerate(minors):
+            minor_uuid = existing_minors.get((major_name, minor_name), f"tmp-{uuid.uuid4()}")  # 기존 소분류 이름과 일치하면 UUID 유지, 아니면 임시 UUID 생성
+            minor_list.append({
+                "uuid": minor_uuid,
+                "name": minor_name
+            })
+        defaults.append({
+            "id": major_id,
+            "name": major_name,
+            "minors": minor_list
+        })
+    return defaults

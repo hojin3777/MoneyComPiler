@@ -95,16 +95,15 @@ def move_database(old_base, new_base, force=False):
 def get_db_connection():
     """DB 연결 반환"""
     db_path = get_db_path()
-    
     try:
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
+        conn.execute('PRAGMA foreign_keys = ON')  # 외래 키 제약 활성화
         print(f"DB 연결 성공: {db_path}")
         return conn
     except Exception as e:
         print(f"DB 연결 실패: {e}")
         raise
-
 
 
 
@@ -153,9 +152,9 @@ def init_db():
         CREATE TABLE IF NOT EXISTS transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             transaction_date TEXT NOT NULL,
-            account_id INTEGER NOT NULL,                   
+            account_id INTEGER,                   
             type TEXT NOT NULL,
-            minor_category_uuid TEXT NOT NULL,
+            minor_category_uuid TEXT,
             amount INTEGER NOT NULL,
             merchant TEXT NOT NULL,
             memo TEXT,
@@ -193,7 +192,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS rule_based_mappings(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             merchant_name TEXT NOT NULL UNIQUE,
-            minor_category_uuid TEXT NOT NULL,
+            minor_category_uuid TEXT,
             FOREIGN KEY (minor_category_uuid) REFERENCES minor_categories (uuid) ON DELETE SET NULL
         )
     ''')

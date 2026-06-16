@@ -52,6 +52,20 @@ const MappingPage = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
+  // ******* 단축키 저장 이벤트 *******
+    useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+          e.preventDefault();
+          if(isDirty){
+            handleSave();
+          }
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isDirty, data, originalData]);
+
   // ******* 데이터 관리 *******
   // 데이터 불러오기
   const fetchData = async () => {
@@ -151,19 +165,23 @@ const MappingPage = () => {
       isOpen: true,
       type: 'destructive',
       title: '매핑 초기화',
-      message: '모든 매핑 정보를 기본값으로 되돌리시겠습니까? 이 작업은 되돌릴 수 없습니다.',
+      message: '모든 매핑 정보를 기본값으로 되돌리시겠습니까?',
       onConfirm: async () => {
         setConfirmPopup(prev => ({ ...prev, isOpen: false }));
         setStatus('Resetting...');
         try {
-            const response = await fetch(`${API_BASE_URL}/api/mappings/reset`, { method: 'POST' });
-            if (!response.ok) throw new Error('Failed to reset mappings');
-            await fetchData(); // 초기화된 데이터를 다시 불러옴
-            setStatus('Reset successfully');
+          const response = await fetch(`${API_BASE_URL}/api/mappings/defaults`);
+          const result = await response.json();
+          setData(prev => prev ? { ...prev, mappings: result.mappings } : null);
+          setIsDirty(true);
+          setStatus('Reset successfully');
+            // const response = await fetch(`${API_BASE_URL}/api/mappings/reset`, { method: 'POST' });
+            // if (!response.ok) throw new Error('Failed to reset mappings');
+            // await fetchData(); // 초기화된 데이터를 다시 불러옴
+            // setStatus('Reset successfully');
         } catch (err) {
-            console.error(err);
+            console.error('Reset failed:', err);
             setStatus('Reset failed');
-            alert('초기화에 실패했습니다.');
         } finally {
             setTimeout(() => setStatus(''), 3000);
         }

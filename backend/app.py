@@ -323,38 +323,6 @@ except Exception as e:
 def home():
     return jsonify({"message": "Backend server is running successfully!"})
 
-# 이미지 처리를 위한 API 엔드포인트
-@app.route('/api/ocr', methods=['POST'])
-def process_image_ocr():
-    """
-    업로드된 이미지를 받아 OCR을 수행하고 구조화된 데이터를 반환합니다.
-    """
-    if 'image' not in request.files:
-        return jsonify({"error": "No image file found in the request."}), 400
-
-    file = request.files['image']
-    
-    if file.filename == '':
-        return jsonify({"error": "No file selected."}), 400
-
-    try:
-        image_bytes = file.read()
-        transactions = ocr_service.process_image_to_transactions(image_bytes)
-        
-        # --- ✨새로운 단계: 결과를 DB에 저장 ---
-        for trans in transactions:
-            database.add_transaction(trans)
-        # ------------------------------------
-        all_transactions = database.get_all_transactions()
-        return jsonify(all_transactions)
-
-    except Exception as e:
-        # 실제 운영 환경에서는 더 상세한 로깅이 필요
-        print(f"Error during OCR processing: {e}")
-        return jsonify({"error": f"An error occurred during image processing: {e}"}), 500
-
-
-
 
 # ------------------- 대시보드 통계 API -------------------
 @app.route('/api/settings/dashboard_trend_range', methods=['GET', 'POST'])
@@ -640,15 +608,15 @@ def manage_transactions():
             print(f"Error saving transactions: {e}")
             return jsonify({"error": "Failed to save transactions"}), 500
 
-@app.route('/api/transactions/reset', methods=['POST'])
-def reset_transactions():
-    """거래내역 데이터를 모두 삭제하고 성공 메시지를 반환합니다."""
-    try:
-        database.reset_all_transactions()
-        return jsonify({"message": "Transactions reset successfully"})
-    except Exception as e:
-        print(f"Error resetting transactions: {e}")
-        return jsonify({"error": str(e)}), 500
+# @app.route('/api/transactions/reset', methods=['POST'])
+# def reset_transactions():
+#     """거래내역 데이터를 모두 삭제하고 성공 메시지를 반환합니다."""
+#     try:
+#         database.reset_all_transactions()
+#         return jsonify({"message": "Transactions reset successfully"})
+#     except Exception as e:
+#         print(f"Error resetting transactions: {e}")
+#         return jsonify({"error": str(e)}), 500
 
 # 이미지 처리를 위한 API 엔드포인트
 @app.route('/api/ocr/transactions', methods=['POST'])
@@ -782,25 +750,25 @@ def get_ocr_image(filename):
 
 
 
-# -------------------- 계좌 카테고리 초기화 -------------------
-@app.route('/api/initialize-defaults', methods=['POST'])
-def initialize_defaults():
-    """계좌와 카테고리 테이블을 기본값으로 초기화합니다."""
-    try:
-        conn = database.get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM accounts')
-        cursor.execute('DELETE FROM major_categories')
-        cursor.execute('DELETE FROM minor_categories')
-        conn.commit()
-        conn.close()
+# # -------------------- 계좌 카테고리 초기화 -------------------
+# @app.route('/api/initialize-defaults', methods=['POST'])
+# def initialize_defaults():
+#     """계좌와 카테고리 테이블을 기본값으로 초기화합니다."""
+#     try:
+#         conn = database.get_db_connection()
+#         cursor = conn.cursor()
+#         cursor.execute('DELETE FROM accounts')
+#         cursor.execute('DELETE FROM major_categories')
+#         cursor.execute('DELETE FROM minor_categories')
+#         conn.commit()
+#         conn.close()
 
-        account_utils.initialize_default_accounts()
-        category_utils.initialize_default_categories()
-        return jsonify({"message": "Default accounts and categories initialized successfully."}), 200
-    except Exception as e:
-        print(f"Error initializing defaults: {e}")
-        return jsonify({"error": str(e)}), 500
+#         account_utils.initialize_default_accounts()
+#         category_utils.initialize_default_categories()
+#         return jsonify({"message": "Default accounts and categories initialized successfully."}), 200
+#     except Exception as e:
+#         print(f"Error initializing defaults: {e}")
+#         return jsonify({"error": str(e)}), 500
 
 
 
@@ -829,6 +797,12 @@ def get_category_usage():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/api/categories/defaults', methods=['GET'])
+def get_default_categories():
+    """기본 카테고리 데이터 반환(초기화 수행용)"""
+    return jsonify(category_utils.get_default_categories())
+
+
 
 
 # ------------------- 계좌 API -------------------
@@ -852,6 +826,9 @@ def get_account_usage():
         return jsonify({"in_use": in_use})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+
 
 
 
@@ -879,15 +856,19 @@ def manage_mappings():
             print(f"Error updating mapping: {e}")
             return jsonify({"error": "Failed to update mapping"}), 500
 
-@app.route('/api/mappings/reset', methods=['POST'])
-def reset_mappings():
-    """매핑을 기본값으로 초기화합니다."""
-    try:
-        result = mapping_utils.reset_mappings_to_default()
-        return jsonify(result)
-    except Exception as e:
-        print(f"Error resetting mappings: {e}")
-        return jsonify({"error": "Failed to reset mappings"}), 500
+# @app.route('/api/mappings/reset', methods=['POST'])
+# def reset_mappings():
+#     """매핑을 기본값으로 초기화합니다."""
+#     try:
+#         result = mapping_utils.reset_mappings_to_default()
+#         return jsonify(result)
+#     except Exception as e:
+#         print(f"Error resetting mappings: {e}")
+#         return jsonify({"error": "Failed to reset mappings"}), 500
+@app.route('/api/mappings/defaults', methods=['GET'])
+def get_default_mappings():
+    """기본 매핑 데이터 반환(초기화 수행용)"""
+    return jsonify(mapping_utils.get_default_mappings())
     
 # OCR 보정 규칙    
 @app.route('/api/ocr-corrections', methods=['GET', 'POST', 'PATCH'])

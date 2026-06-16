@@ -156,32 +156,44 @@ def update_all_mappings(mappings: dict):
     finally:
         conn.close()
 
-def reset_mappings_to_default():
-    """
-    모든 매핑을 하드코딩된 기본값으로 재설정합니다.
-    """
-    conn = database.get_db_connection()
-    cursor = conn.cursor()
-    try:
-        # 1. 테이블 비우기
-        cursor.execute("DELETE FROM category_mappings")
-        cursor.execute("DELETE FROM ocr_corrections")
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name='ocr_corrections'")
-        cursor.execute("DELETE FROM rule_based_mappings")
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name='rule_based_mappings'")
-        conn.commit() # DELETE 먼저 커밋
+# def reset_mappings_to_default():
+#     """
+#     모든 매핑을 하드코딩된 기본값으로 재설정합니다.
+#     """
+#     conn = database.get_db_connection()
+#     cursor = conn.cursor()
+#     try:
+#         # 1. 테이블 비우기
+#         cursor.execute("DELETE FROM category_mappings")
+#         cursor.execute("DELETE FROM ocr_corrections")
+#         cursor.execute("DELETE FROM sqlite_sequence WHERE name='ocr_corrections'")
+#         cursor.execute("DELETE FROM rule_based_mappings")
+#         cursor.execute("DELETE FROM sqlite_sequence WHERE name='rule_based_mappings'")
+#         conn.commit() # DELETE 먼저 커밋
 
-        # 2. 초기화 함수 재호출
-        initialize_default_mappings()
+#         # 2. 초기화 함수 재호출
+#         initialize_default_mappings()
         
-        return {"status": "success", "message": "Mappings have been reset to default."}
-    except Exception as e:
-        print(f"Error resetting mappings: {e}")
-        raise e
-    finally:
-        # initialize_default_mappings에서 conn을 닫았을 수 있으므로 안전하게 처리
-        if conn:
-            conn.close()
+#         return {"status": "success", "message": "Mappings have been reset to default."}
+#     except Exception as e:
+#         print(f"Error resetting mappings: {e}")
+#         raise e
+#     finally:
+#         # initialize_default_mappings에서 conn을 닫았을 수 있으므로 안전하게 처리
+#         if conn:
+#             conn.close()
+def get_default_mappings():
+    """소분류 UUID를 조회하여 기본 매핑 데이터를 반환합니다."""
+    conn = database.get_db_connection()
+    minor_categories_map = {row['name']: row['uuid'] for row in conn.execute("SELECT uuid, name FROM minor_categories").fetchall()}
+    conn.close()
+
+    default_mappings = {}
+    for bert_id, bert_name, default_minor_name in DEFAULT_MAPPINGS:
+        if default_minor_name in minor_categories_map:
+            default_mappings[str(bert_id)] = minor_categories_map[default_minor_name]
+    
+    return { "mappings": default_mappings }
 
 
 # 딥러닝 mapping 외 함수들

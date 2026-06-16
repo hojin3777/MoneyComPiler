@@ -223,6 +223,20 @@ const Transactions = () => {
     }
   }, [lastInsertedFromFormId]);
 
+  // ******* 단축키 저장 이벤트 *******
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if(isDirty){
+          handleSave();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDirty, transactions]);
+
   // ******* Stream Close *******
   useEffect(() => {
     return () => {
@@ -276,39 +290,36 @@ const Transactions = () => {
   // ******* 데이터 저장/초기화 *******
   // 빈 셀 체크 후 저장
   const handleSave = async () => {
-    let emptyCellFound = null;
+    let emptyCellFound: { rowId: number|string; column: keyof Transaction } | null = null;
     for (const t of transactions) {
       if (t.account_id === null) {
-        emptyCellFound = { rowId: t.id, column: 'account_name' as keyof Transaction };
+        emptyCellFound = { rowId: t.id, column: 'account_name'};
         break;
       }
       if (t.minor_category_uuid === null) {
-        emptyCellFound = { rowId: t.id, column: 'minor_category_name' as keyof Transaction };
+        emptyCellFound = { rowId: t.id, column: 'minor_category_name' };
         break;
       }
       if (t.merchant === '') {
-        emptyCellFound = { rowId: t.id, column: 'merchant' as keyof Transaction };
+        emptyCellFound = { rowId: t.id, column: 'merchant' };
         break;
       }
       if (t.amount === null) {
-        emptyCellFound = { rowId: t.id, column: 'amount' as keyof Transaction };
+        emptyCellFound = { rowId: t.id, column: 'amount'};
         break;
       }
     }
     if (emptyCellFound) {
       setConfirmPopup({
         isOpen: true,
-        type: 'confirm',
+        type: 'alert',
         title: '미입력 항목 경고',
-        message: '필수 입력 항목이 비어 있습니다.\n해당 행을 제외하고 저장을 진행하시겠습니까?',
+        message: '필수 입력 항목이 비어 있어 저장할수 없습니다.\n비어있는 항목을 채우거나 빈 행을 삭제해 주세요.',
         onConfirm: () => {
-          setConfirmPopup(prev => ({ ...prev, isOpen: false }));
-          proceedSave();
-        },
-        onCancel: () => {
           scrollToAndHighlightCell(emptyCellFound);
           setConfirmPopup(prev => ({ ...prev, isOpen: false }));
         },
+        onCancel: undefined,
       });
       return;
     }
@@ -393,21 +404,25 @@ const Transactions = () => {
       isOpen: true,
       type: 'destructive',
       title: '거래내역 초기화',
-      message: '모든 거래내역을 삭제하고 초기 상태로 되돌리시겠습니까?\n이 작업은 되돌릴 수 없습니다.',
+      message: '모든 거래내역을 삭제하고 초기 상태로 되돌리시겠습니까?',
       onConfirm: async () => {
         setConfirmPopup(prev => ({ ...prev, isOpen: false }));
         setStatus('Resetting...');
-        try {
-          const response = await fetch(`${API_BASE_URL}/api/transactions/reset`, { method: 'POST' });
-          if (!response.ok) throw new Error('Reset failed.');
-          await fetchAllData();
-          setStatus('Reset successfully');
-        } catch (error) {
-          console.error("Reset failed:", error);
-          setStatus("Reset failed");
-        } finally {
-          setTimeout(() => setStatus(''), 3000);
-        }
+        setTransactions([]);
+        setIsDirty(true);
+        // try {
+        //   const response = await fetch(`${API_BASE_URL}/api/transactions/reset`, { method: 'POST' });
+        //   if (!response.ok) throw new Error('Reset failed.');
+        //   await fetchAllData();
+        //   setStatus('Reset successfully');
+        // } catch (error) {
+        //   console.error("Reset failed:", error);
+        //   setStatus("Reset failed");
+        // } finally {
+        //   setTimeout(() => setStatus(''), 3000);
+        // }
+        setStatus('Reset successfully');
+        setTimeout(() => setStatus(''), 3000);
       },
       onCancel: () => setConfirmPopup(prev => ({ ...prev, isOpen: false })),
     });

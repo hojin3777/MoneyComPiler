@@ -13,7 +13,7 @@ export type FloatingSelectHandle = {
 };
 
 const OPTION_HEIGHT = 36;
-const MAX_VISIBLE = 8;
+const MAX_VISIBLE = 12;
 
 const FloatingSelectPopup = forwardRef<FloatingSelectHandle, {}>((_props, ref) => {
   const [openState, setOpenState] = useState(false);

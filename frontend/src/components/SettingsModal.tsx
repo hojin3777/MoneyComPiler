@@ -244,9 +244,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
           </div>
 
           <div className="settings-section">
-            <div className="settings-section-title">데이터</div>
+            <div className="settings-section-title">버전 b0.1.0</div>
             <div className="settings-section-content">
-              <div className="settings-row">이 영역에 옵션을 배치하세요.</div>
+              <div className="settings-row">베타테스트 버전입니다. 의견을 남겨주세요!</div>
             </div>
           </div>
         </div>
