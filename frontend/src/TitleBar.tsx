@@ -11,15 +11,16 @@ const TitleBar: React.FC = () => {
     const detectedIsMac = (window as any).electronAPI?.isMac || navigator.platform.toLowerCase().includes('mac');
     setIsMac(detectedIsMac);
     
-    if (isDev) {
-      // 개발 모드: Vite dev server
-      setIconPath(detectedIsMac ? '/icon.icns' : '/icon.ico');
-    } else {
-      // 프로덕션 모드: file:// 프로토콜
-      // Electron에서 app.asar 내부 또는 resources 폴더의 플랫폼별 아이콘 사용
-      setIconPath(detectedIsMac ? './icon.icns' : './icon.ico');
-    }
-  }, []);
+    if (!detectedIsMac) {
+        if (isDev) {
+          // 개발 모드
+          setIconPath('/icon.ico');
+        } else {
+          // 프로덕션 모드
+          setIconPath('./icon.ico');
+        }
+      }
+    }, []);
 
   const handleMinimize = () => {
     window.electronAPI?.minimize();
