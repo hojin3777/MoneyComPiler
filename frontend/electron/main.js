@@ -69,7 +69,7 @@ function resolveDevPythonExecutable() {
         }
     }
 
-    return IS_WINDOWS ? 'C:\\code\\.venv_backend\\Scripts\\python.exe' : 'python3';
+    return IS_WINDOWS ? 'C:\\MoneyComPiler\\.venv_backend\\Scripts\\python.exe' : 'python3';
 }
 
 // resolveBackendScriptPath: backend/app.py의 실제 경로를 계산합니다.
