@@ -124,62 +124,38 @@ const App = () => {
   }, [backendReady]);
 
   useEffect(() => {
-    if (backendReady) {
-      return;
-    }
+    const checkBackendReady = async () => {
+      let elapsedSeconds = 0;
+      const maxSeconds = BACKEND_READY_TIMEOUT;
 
-    let isMounted = true;
-    let attempts = 0;
-    let intervalId: ReturnType<typeof setInterval> | null = null;
+      while (elapsedSeconds < maxSeconds) {
+        try {
+          const response = await fetch(`${BACKEND_BASE_URL}/api/health`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+          });
 
-    const checkBackend = async () => {
-      if (!isMounted) {
-        return;
-      }
-
-      try {
-        const response = await fetch(`${BACKEND_BASE_URL}/api/health`, {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' },
-        });
-
-        if (response.ok && isMounted) {
-          // console.log('Backend is ready!');
-          const data = await response.json();
-          console.log(data.message);
-          setBackendReady(true);
-          if (intervalId) {
-            clearInterval(intervalId);
+          if (response.ok) {
+            const data = await response.json();
+            console.log(data.message);
+            setBackendReady(true);
+            return;
           }
-          return;
+        } catch (error) {
+          // 네트워크 준비 전에는 조용히 재시도합니다.
         }
-      } catch (error) {
-        // 네트워크 준비 전에는 조용히 재시도합니다.
-      }
 
-      attempts += 1;
-      setRetryCount(attempts);
-      console.log(`Backend not ready yet (attempt ${attempts})...`);
-
-      if (attempts >= BACKEND_READY_TIMEOUT) {
-        if (intervalId) {
-          clearInterval(intervalId);
-        }
-        console.error(`Backend failed to start after ${BACKEND_READY_TIMEOUT} attempts`);
-        alert('백엔드 서버를 시작할 수 없습니다. 앱을 다시 시작해주세요.');
+        await new Promise(resolve => setTimeout(resolve, 900));
+        elapsedSeconds++;
+        setRetryCount(elapsedSeconds);
+        console.log(`Backend not ready yet (${elapsedSeconds}s)...`);
       }
+      // 최대 시간 초과
+      console.error(`Backend failed to start after ${maxSeconds} seconds`);
+      alert('백엔드 서버를 시작할 수 없습니다. 앱을 다시 시작해주세요.');
     };
-
-    checkBackend();
-    intervalId = setInterval(checkBackend, 1000);
-
-    return () => {
-      isMounted = false;
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [backendReady]);
+    checkBackendReady();
+  }, []);
 
   // getHourglassIcon: 현재 시계 아이콘 반환
   const getHourglassIcon = () => {
