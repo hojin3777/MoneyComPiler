@@ -228,3 +228,4 @@ node_modules/
 python-embed/
 mydata.db
 data_path.db
+.venv_backend

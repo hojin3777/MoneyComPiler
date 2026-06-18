@@ -144,7 +144,9 @@ const App = () => {
         });
 
         if (response.ok && isMounted) {
-          console.log('Backend is ready!');
+          // console.log('Backend is ready!');
+          const data = await response.json();
+          console.log(data.message);
           setBackendReady(true);
           if (intervalId) {
             clearInterval(intervalId);

@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "pack:python": "node scripts/package-python.mjs",
     "electron:dev": "concurrently --kill-others \"cross-env BROWSER=none CUSTOMMYDATA_PYTHON=/opt/miniconda3/envs/custommydata-mac/bin/python npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:dev:win": "concurrently --kill-others \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "npm run pack:python && npm run build && electron-builder",
     "electron:build:mac": "npm run pack:python && npm run build && electron-builder --mac --arm64",
     "electron:build:win": "npm run build && electron-builder --win --x64"

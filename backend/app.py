@@ -227,9 +227,11 @@ print(f"BACKEND_PORT: {BACKEND_PORT}")
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """백엔드 서버 상태 확인"""
+    device_str = str(device).upper()
     return jsonify({
         'status': 'ok',
-        'message': 'Backend is ready',
+        'message': f'Backend is ready! Device: {device_str}',
+        'device': device_str,
         'timestamp': datetime.now().isoformat()
     }), 200
 
