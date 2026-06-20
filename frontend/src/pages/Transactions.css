@@ -65,108 +65,236 @@
   border: 1px solid var(--color-border);
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
 .table-transaction {
-  table-layout: fixed;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 /* --- 열 너비 고정 --- */
-/* 1번째 열: 체크박스 */
-.table-container th:nth-child(1),
-.table-container td:nth-child(1) {
-  width: 20px;
-  min-width: 20px;
-}
-/* 2번째 열: 날짜 */
-.table-container th:nth-child(2),
-.table-container td:nth-child(2) {
-  width: 100px;
-  min-width: 100px;
-}
-/* 3번째 열: 계좌 */
-.table-container th:nth-child(3),
-.table-container td:nth-child(3) {
-  width: 120px;
-  min-width: 120px;
-}
-/* 4번째 열: 유형 */
-.table-container th:nth-child(4),
-.table-container td:nth-child(4) {
-  width: 80px;
-  min-width: 80px;
-}
-/* 5, 6, 7번째 열: 대분류, 소분류 금액 */
-.table-container th:nth-child(5),
-.table-container td:nth-child(5),
-.table-container th:nth-child(6),
-.table-container td:nth-child(6),
-.table-container th:nth-child(7),
-.table-container td:nth-child(7) {
-  width: 100px;
-  min-width: 100px;
-}
-/* 8번째 열: 거래처 */
-.table-container th:nth-child(8),
-.table-container td:nth-child(8) {
-  width: 160px;
-  min-width: 160px;
-}
-/* 9번째 열: 메모 */
-.table-container th:nth-child(9),
-.table-container td:nth-child(9) {
-  width: 200px;
-  min-width: 200px;
-}
-
-/* 테이블 셀 스타일 통합 및 오류 수정 */
-.table-container th,
-.table-container td {
-  padding: 8px 12px;
-  white-space: nowrap;
-  border-bottom: 1px solid var(--color-border);
-  border-right: 1px solid var(--color-border);
-}
-
-.table-container th:nth-child(3),
-.table-container td:nth-child(3),
-.table-container th:nth-child(4),
-.table-container td:nth-child(4),
-.table-container th:nth-child(5),
-.table-container td:nth-child(5),
-.table-container th:nth-child(6),
-.table-container td:nth-child(6),
-.table-container th:nth-child(7),
-.table-container td:nth-child(7),
-.table-container th:nth-child(8),
-.table-container td:nth-child(8),
-.table-container th:nth-child(9),
-.table-container td:nth-child(9) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 마지막 열/행의 테두리 제거 */
-.table-container th:last-child,
-.table-container td:last-child {
-  border-right: none;
-}
-
-/* 2. 헤더 스타일 통합 및 배경색 수정 */
-.table-container thead th {
+/* 고정 컬럼: 체크(44px) + 날짜(100px) + 계좌(120px) + 유형(80px) + 대분류(100px) + 소분류(100px) + 금액(100px) + 거래처(160px) + 메모(200px) */
+.table-header {
+  flex-shrink: 0;
   background-color: var(--color-bg-content);
-  font-weight: 600;
-  text-align: center;
-  position: sticky;
   position: sticky;
   top: 0;
   z-index: 10;
-  border-bottom: none;
+  border-bottom: 1px solid var(--color-border);
 }
 
-/* 헤더 컨텐츠 (클릭 영역) */
+.table-header .table-row {
+  display: grid;
+  grid-template-columns: 44fr 125fr 145fr 105fr 125fr 125fr 125fr 185fr 220fr;
+  width: 100%;
+}
+
+.table-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-body .table-row {
+  display: grid;
+  grid-template-columns: 44fr 125fr 145fr 105fr 125fr 125fr 125fr 185fr 220fr;
+  width: 100%;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table-cell {
+  padding: 8.5px 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.table-cell:last-child {
+  border-right: none;
+}
+
+.table-cell.checkbox-cell{
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+}
+.checkbox-cell input[type="checkbox"] {
+  cursor: pointer;
+}
+.table-cell:nth-child(2) {
+  justify-content: center;
+  text-align: center;
+}
+
+.table-cell.header-cell {
+  cursor: pointer;
+  text-align: center;
+  font-weight: 600;
+  padding: 8px 12px;
+  justify-content: center;
+}
+
+/* 셀 내용 정렬 */
+.table-cell.amount-income,
+.table-cell.amount-expense {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+/* 금액 스타일 */
+.table-cell.amount-income {
+  color: var(--color-accent-red);
+  font-weight: 500;
+}
+
+.table-cell.amount-expense {
+  color: var(--color-accent-blue);
+}
+
+/* 플레이스홀더 스타일 */
+.placeholder {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+/* ====== 편집 모드 스타일 ====== */
+.table-cell.editing {
+  position: relative;
+  padding: 0;
+}
+
+.table-cell.editing input,
+.table-cell.editing select,
+.table-cell.editing .react-datepicker-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  padding: 0 8px;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-bg-content);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.table-cell.editing select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23c2c2c2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 0.8em auto;
+  padding-right: 28px;
+}
+
+.table-cell.editing select option {
+  background: var(--color-bg-content);
+  color: var(--color-text-primary) !important;
+}
+
+.table-cell.editing input:focus,
+.table-cell.editing select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg-overlay-light);
+  border: 2px solid var(--color-border-interactive);
+}
+
+.react-datepicker-popper {
+  position: fixed !important;
+  z-index: 8000 !important;
+}
+
+.react-datepicker__input-container {
+  width: 100%;
+}
+
+/* 행 하이라이트 스타일 */
+@keyframes highlight-error-animation {
+  0% {
+    background-color: var(--color-highlight-3-transparent9);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+.table-cell.highlight-error {
+  animation: highlight-error-animation 3s ease-out;
+}
+
+@keyframes highlight-new-row {
+  from {
+    background-color: var(--color-highlight-5-transparent9);
+  }
+
+  to {
+    background-color: transparent;
+  }
+}
+
+.table-row.highlight-new {
+  animation: highlight-new-row 3s ease-out;
+}
+
+/* 굵은 텍스트 */
+.table-row.bold-row .table-cell {
+  font-weight: bold;
+}
+
+/* 플래그 (좌측 라인) */
+.table-row[class*="flag-"] .table-cell:first-child {
+  background-repeat: no-repeat;
+  background-position: top 0px, left center;
+  background-size: 16px 100%, 5px 100%;
+}
+
+/* 색상별 플래그 정의 */
+.table-row.flag-1 .table-cell:first-child { background-image: linear-gradient(to right, var(--color-highlight-1-transparent9), transparent), linear-gradient(to right, var(--color-highlight-1), var(--color-highlight-1)); }
+.table-row.flag-2 .table-cell:first-child { background-image: linear-gradient(to right, var(--color-highlight-2-transparent9), transparent), linear-gradient(to right, var(--color-highlight-2), var(--color-highlight-2)); }
+.table-row.flag-3 .table-cell:first-child { background-image: linear-gradient(to right, var(--color-highlight-3-transparent9), transparent), linear-gradient(to right, var(--color-highlight-3), var(--color-highlight-3)); }
+.table-row.flag-4 .table-cell:first-child { background-image: linear-gradient(to right, var(--color-highlight-4-transparent9), transparent), linear-gradient(to right, var(--color-highlight-4), var(--color-highlight-4)); }
+.table-row.flag-5 .table-cell:first-child { background-image: linear-gradient(to right, var(--color-highlight-5-transparent9), transparent), linear-gradient(to right, var(--color-highlight-5), var(--color-highlight-5)); }
+.table-row.flag-6 .table-cell:first-child { background-image: linear-gradient(to right, var(--color-highlight-6-transparent9), transparent), linear-gradient(to right, var(--color-highlight-6), var(--color-highlight-6)); }
+
+
+/* 배경색 */
+.table-row.bg-1 { background-color: var(--color-highlight-1-transparent25); }
+.table-row.bg-2 { background-color: var(--color-highlight-2-transparent25); }
+.table-row.bg-3 { background-color: var(--color-highlight-3-transparent25); }
+.table-row.bg-4 { background-color: var(--color-highlight-4-transparent25); }
+.table-row.bg-5 { background-color: var(--color-highlight-5-transparent25); }
+.table-row.bg-6 { background-color: var(--color-highlight-6-transparent25); }
+
+/* ====== 텍스트 형광펜 스타일 ====== */
+.text-highlight-1,
+.text-highlight-2,
+.text-highlight-3,
+.text-highlight-4,
+.text-highlight-5,
+.text-highlight-6 {
+  padding: 0.2em 0.4em;
+  margin: -0.1em -0.3em;
+  border-radius: 6px;
+  color: var(--color-text-inverted);
+}
+
+.text-highlight-1 { background-color: var(--color-highlight-1); }
+.text-highlight-2 { background-color: var(--color-highlight-2); }
+.text-highlight-3 { background-color: var(--color-highlight-3); }
+.text-highlight-4 { background-color: var(--color-highlight-4); }
+.text-highlight-5 { background-color: var(--color-highlight-5); }
+.text-highlight-6 { background-color: var(--color-highlight-6); }
+
+/* 헤더 컨텐츠 */
 .th-content {
   display: flex;
   align-items: center;
@@ -193,234 +321,9 @@ table {
   color: var(--color-accent-blue);
 }
 
-/* 셀 내용 정렬 */
-.table-container td {
-  text-align: left;
-}
-
-.table-container td:first-child,
-/* 체크박스 */
-.table-container td:nth-child(2) {
-  /* 날짜 (선택-날짜-계좌 순서) */
-  text-align: center;
-}
-
-.table-container td.amount-income,
-.table-container td.amount-expense {
-  text-align: right;
-}
-
-/* 금액 스타일 */
-td.amount-income {
-  color: var(--color-accent-red);
-  font-weight: 500;
-}
-
-td.amount-expense {
-  color: var(--color-accent-blue);
-}
-
-/* 플레이스홀더 스타일 */
-.placeholder {
-  color: var(--color-text-secondary);
-  font-style: italic;
-}
-
-/* --- 편집 모드 스타일 --- */
-td.editing {
-  position: relative;
-}
-
-td.editing input,
-td.editing select,
-td.editing .react-datepicker-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 5;
-  padding: 0 15px;
-  border: 2px solid var(--color-border);
-  border-radius: 4px;
-  background-color: var(--color-bg-content);
-  color: var(--color-text-primary);
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-td.editing select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23c2c2c2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: .8em auto;
-  padding-right: 36px;
-}
-
-td.editing select option {
-  background: var(--color-bg-content);
-  color: var(--color-text-primary) !important;
-}
-
-td.editing input:focus,
-td.editing select:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--color-bg-overlay-light);
-  border: 2px solid var(--color-border-interactive);
-}
-
-.react-datepicker-popper {
-  z-index: 10;
-}
-
-/* 행 하이라이트 스타일 */
-@keyframes highlight-error-animation {
-  0% {
-    background-color: var(--color-highlight-3-transparent9);
-  }
-
-  100% {
-    background-color: transparent;
-  }
-}
-
-.highlight-error {
-  animation: highlight-error-animation 3s ease-out;
-}
-
-@keyframes highlight-new-row {
-  from {
-    background-color: var(--color-highlight-5-transparent9);
-  }
-
-  to {
-    background-color: transparent;
-  }
-}
-
-tr.highlight-new {
-  animation: highlight-new-row 3s ease-out;
-}
 
 
-/* 편집 모드 강조 스타일 */
-.bold-row td {
-  font-weight: bold;
-}
-
-[class *="flag-"] td:first-child {
-  background-repeat: no-repeat;
-  background-position: top 0px, left center;
-  background-size: 16px 100%, 5px 100%;
-}
-
-.flag-1 td:first-child {
-  background-image: linear-gradient(to right, var(--color-highlight-1-transparent9), transparent), linear-gradient(to right, var(--color-highlight-1), var(--color-highlight-1));
-}
-
-.flag-2 td:first-child {
-  background-image: linear-gradient(to right, var(--color-highlight-2-transparent9), transparent), linear-gradient(to right, var(--color-highlight-2), var(--color-highlight-2));
-}
-
-.flag-3 td:first-child {
-  background-image: linear-gradient(to right, var(--color-highlight-3-transparent9), transparent), linear-gradient(to right, var(--color-highlight-3), var(--color-highlight-3));
-}
-
-.flag-4 td:first-child {
-  background-image: linear-gradient(to right, var(--color-highlight-4-transparent9), transparent), linear-gradient(to right, var(--color-highlight-4), var(--color-highlight-4));
-}
-
-.flag-5 td:first-child {
-  background-image: linear-gradient(to right, var(--color-highlight-5-transparent9), transparent), linear-gradient(to right, var(--color-highlight-5), var(--color-highlight-5));
-}
-
-.flag-6 td:first-child {
-  background-image: linear-gradient(to right, var(--color-highlight-6-transparent9), transparent), linear-gradient(to right, var(--color-highlight-6), var(--color-highlight-6));
-}
-
-.bg-1 {
-  background-color: var(--color-highlight-1-transparent25);
-}
-
-/* 보라/회색 */
-.bg-2 {
-  background-color: var(--color-highlight-2-transparent25);
-}
-
-/* 핑크/빨강 */
-.bg-3 {
-  background-color: var(--color-highlight-3-transparent25);
-}
-
-/* 노랑/주황 */
-.bg-4 {
-  background-color: var(--color-highlight-4-transparent25);
-}
-
-/* 연두 */
-.bg-5 {
-  background-color: var(--color-highlight-5-transparent25);
-}
-
-/* 하늘/파랑 */
-.bg-6 {
-  background-color: var(--color-highlight-6-transparent25);
-}
-
-/* 주황/마젠타 */
-
-/* ✨ 텍스트 형광펜 스타일 (최종 제안) */
-.text-highlight-1,
-.text-highlight-2,
-.text-highlight-3,
-.text-highlight-4,
-.text-highlight-5,
-.text-highlight-6 {
-  padding: 0.2em 0.4em;
-  /* 형광펜의 상하좌우 여백 */
-  margin: -0.1em -0.3em;
-  /* 여백으로 인해 레이아웃이 밀리는 것을 방지 */
-  border-radius: 6px;
-  color: var(--color-text-inverted);
-  /* 어두운 텍스트 색상으로 가독성 확보 */
-}
-
-.text-highlight-1 {
-  background-color: var(--color-highlight-1)
-}
-
-/* 노랑 */
-.text-highlight-2 {
-  background-color: var(--color-highlight-2)
-}
-
-/* 하늘 */
-.text-highlight-3 {
-  background-color: var(--color-highlight-3)
-}
-
-/* 핑크 */
-.text-highlight-4 {
-  background-color: var(--color-highlight-4)
-}
-
-/* 연두 */
-.text-highlight-5 {
-  background-color: var(--color-highlight-5)
-}
-
-/* 주황 */
-.text-highlight-6 {
-  background-color: var(--color-highlight-6)
-}
-
-/* 보라 */
-
-
-
+/* OCR 로딩 오버레이 스타일 */
 .ocr-loading-overlay {
   position: fixed;
   top: 0;

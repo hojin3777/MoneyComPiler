@@ -2,12 +2,10 @@
 <details>
 <summary>TODO</summary>
 
+
 - TODO: 데모 DB 넣기
 - TODO: 가이드 작성(AI가 프론트읽고 가능한가?)
-- TODO: 맥버전 시간 잘 재지나 확인 필요
-- TODO: 윈도우 버전 탑재용 파이썬 추가 필요
-
-- TODO: 거래내역 페이지 최적화 방안 고려
+- TODO: 윈도우 버전 탑재용 파이썬 추가 필요(CPU/CUDA용 분기도 필요할듯?)
 - TODO: 자동 매핑 추가에 되돌리기 버튼 추가
 
 - TODO: 윈도우 버전 torch 라이브러리 왜이렇게 큰지 보기
@@ -22,6 +20,23 @@
 </details>
 
 ## 2026년
+
+### 0620
+- TODO: 맥버전 시간 잘 재지나 확인 필요
+    - 맥버전 정상 작동 확인, 1000ms로 변경
+- TODO: 거래내역 페이지 최적화 방안 고려
+    - 거래내역 페이지 렌더방식 전면 div table로 변경, tr방식 폐기
+    - 테이블 렌더, 셀 렌더 함수 및 CSS스타일 재정의
+    - 열 너비 문제 fr unit으로 해결
+- scrollToTarget 통합 함수 개발:
+    - 스크롤&하이라이트 로직 단일 함수로 통합
+    - 적용: handleAddRow, handleInsertTransactions, handleOcrInsert, handleExcelInsert 등 스크롤 및 강조 기능이 필요한 모든 부분에 적용
+    - 기존 useEffect식 상태 변화 catch 방식 폐기
+- 체크박스 클릭 영역 확대:
+    - checkbox를 품은 div 클릭만으로 체크박스를 동작시킬 수 있도록 UX 개선
+    - 체크박스 호버 시 pointer CSS 적용으로 UX통일
+- OcrImageUploadModal 팝업 출현 위치 조정
+
 
 ### 0618
 - 앱 로드 개선

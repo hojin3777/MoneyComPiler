@@ -97,6 +97,14 @@ const Transactions = () => {
   const [colorPopupPosition, setColorPopupPosition] = useState({ top: 0, left: 0 });
   const [activeStyleType, setActiveStyleType] = useState<'flag' | 'highlight' | 'background' | null>(null);
 
+  // 스크롤 type
+  type ScrollTargetType = 'bottom' | 'error' | 'inserted';
+  interface ScrollTarget {
+    type: ScrollTargetType;
+    rowId?: number | string | (number | string)[];    // error, inserted 만 사용
+    column?: keyof Transaction; // error 만 사용
+  }
+
   // OCR 이미지 업로드 모달 관련 state
   const [ocrModalOpen, setOcrModalOpen] = useState(false);
   const ocrButtonRef = useRef<HTMLButtonElement>(null);
@@ -209,19 +217,19 @@ const Transactions = () => {
   }, [isDirty]);
 
   // ******* 폼 새 행 추가 이벤트 처리 *******
-  useEffect(() => {
-    if (lastInsertedFromFormId) {
-      const rowElement = document.getElementById(`row-${lastInsertedFromFormId}`);
-      if (rowElement) {
-        rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        rowElement.classList.add('highlight-new');
-        setTimeout(() => {
-          rowElement.classList.remove('highlight-new');
-        }, 3000);
-      }
-      setLastInsertedFromFormId(null);
-    }
-  }, [lastInsertedFromFormId]);
+  // useEffect(() => {
+  //   if (lastInsertedFromFormId) {
+  //     const rowElement = document.getElementById(`row-${lastInsertedFromFormId}`);
+  //     if (rowElement) {
+  //       rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  //       rowElement.classList.add('highlight-new');
+  //       setTimeout(() => {
+  //         rowElement.classList.remove('highlight-new');
+  //       }, 3000);
+  //     }
+  //     setLastInsertedFromFormId(null);
+  //   }
+  // }, [lastInsertedFromFormId]);
 
   // ******* 단축키 저장 이벤트 *******
   useEffect(() => {
@@ -276,7 +284,8 @@ const Transactions = () => {
       setStatus('Loaded successfully');
       setTimeout(() => setStatus(''), 3000);
       setTimeout(() => {
-        handleScrollToBottom();
+        // handleScrollToBottom();
+        scrollToTarget({ type: 'bottom' });
       }, 200); // 데이터 로딩 후 약간의 지연을 두고 스크롤
     } catch (error) {
       console.error("Data loading failed:", error);
@@ -316,7 +325,8 @@ const Transactions = () => {
         title: '미입력 항목 경고',
         message: '필수 입력 항목이 비어 있어 저장할수 없습니다.\n비어있는 항목을 채우거나 빈 행을 삭제해 주세요.',
         onConfirm: () => {
-          scrollToAndHighlightCell(emptyCellFound);
+          // scrollToAndHighlightCell(emptyCellFound);
+          scrollToTarget({ type: 'error', rowId: emptyCellFound!.rowId, column: emptyCellFound!.column });
           setConfirmPopup(prev => ({ ...prev, isOpen: false }));
         },
         onCancel: undefined,
@@ -364,38 +374,108 @@ const Transactions = () => {
     }
   };
 
-  // 빈 셀 스크롤
-  const scrollToAndHighlightCell = (cellinfo: { rowId: number | string; column: keyof Transaction }) => {
-    const cellId = `cell-${cellinfo.rowId}-${cellinfo.column}`;
-    const cellElement = document.getElementById(cellId);
-    const containerElement = tableContainerRef.current;
-    if (cellElement && containerElement) {
-      // element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const duration = 200; // 스크롤 지속 시간 (ms). 이 값을 줄이면 더 빨라집니다.
-      const start = containerElement.scrollTop;
-      const end = cellElement.offsetTop - (containerElement.clientHeight / 2) + (cellElement.clientHeight / 2);
-      const distance = end - start;
-      let startTime: number | null = null;
-      // 애니메이션을 실행하는 함수
-      const step = (timestamp: number) => {
-        if (!startTime) {
-          startTime = timestamp;
+  // 통합 스크롤 함수
+  const scrollToTarget = (target: ScrollTarget) => {
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    let endPosition: number;
+    let highlightElement: HTMLElement[] = [];
+    let highlightClass = '';
+    let duration = 200; // 스크롤 지속 시간 (ms), 기본 200
+
+    switch (target.type) {
+      case 'bottom':
+        endPosition = container.scrollHeight - container.clientHeight;
+        break;
+      case 'error':
+        const cellId = `cell-${target.rowId}-${target.column}`;
+        const errorElement = document.getElementById(cellId);
+        if (!errorElement) return;
+        endPosition = errorElement.offsetTop - (container.clientHeight / 2) + (errorElement.clientHeight / 2);
+        highlightElement = [errorElement];
+        highlightClass = 'highlight-error';
+        break;
+      case 'inserted':
+        const rowIds = Array.isArray(target.rowId) ? target.rowId : [target.rowId];
+        if (!rowIds || rowIds.length === 0) return;
+
+        highlightElement = [];
+        for(const id of rowIds){
+          const rowElement = document.getElementById(`row-${id}`);
+          if(rowElement) highlightElement.push(rowElement);
         }
-        const elapsed = timestamp - startTime;
-        const progress = Math.min(elapsed / duration, 1); // 0과 1 사이의 진행률
-        const easeInOutQuad = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress; // 부드러운 시작과 끝을 위한 Easing 함수 적용
-        containerElement.scrollTop = start + distance * easeInOutQuad;
-        if (elapsed < duration) {
-          requestAnimationFrame(step); // 애니메이션이 끝나지 않았으면 다음 프레임 요청
+        if (highlightElement.length === 0) return;
+
+        if(highlightElement.length === 1){
+          endPosition = highlightElement[0].offsetTop - (container.clientHeight / 2) + (highlightElement[0].clientHeight / 2);
+        } else {
+          endPosition = container.scrollHeight - container.clientHeight; // 맨 아래로
         }
-      };
-      requestAnimationFrame(step); // 애니메이션 시작
-      cellElement.classList.add('highlight-error');
-      setTimeout(() => {
-        cellElement.classList.remove('highlight-error');
-      }, 3000);
+        highlightClass = 'highlight-new';
+        duration = 300; // 새 행 스크롤은 조금 더 길게
+        break;
     }
+
+    
+    const start = container.scrollTop;
+    const distance = endPosition - start;
+    let startTime: number | null = null;
+
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeInOutQuad = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+      container.scrollTop = start + distance * easeInOutQuad;
+      if (elapsed < duration) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+
+    if (highlightElement.length > 0) {
+    setTimeout(() => {
+      highlightElement.forEach(element => {
+        element.classList.add(highlightClass);
+        setTimeout(() => {
+          element.classList.remove(highlightClass);
+        }, 3000);
+      });
+    }, 50);
+  }
   };
+
+  // 빈 셀 스크롤
+  // const scrollToAndHighlightCell = (cellinfo: { rowId: number | string; column: keyof Transaction }) => {
+  //   const cellId = `cell-${cellinfo.rowId}-${cellinfo.column}`;
+  //   const cellElement = document.getElementById(cellId);
+  //   const containerElement = tableContainerRef.current;
+  //   if (cellElement && containerElement) {
+  //     // element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  //     const duration = 200; // 스크롤 지속 시간 (ms). 이 값을 줄이면 더 빨라집니다.
+  //     const start = containerElement.scrollTop;
+  //     const end = cellElement.offsetTop - (containerElement.clientHeight / 2) + (cellElement.clientHeight / 2);
+  //     const distance = end - start;
+  //     let startTime: number | null = null;
+  //     // 애니메이션을 실행하는 함수
+  //     const step = (timestamp: number) => {
+  //       if (!startTime) {
+  //         startTime = timestamp;
+  //       }
+  //       const elapsed = timestamp - startTime;
+  //       const progress = Math.min(elapsed / duration, 1); // 0과 1 사이의 진행률
+  //       const easeInOutQuad = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress; // 부드러운 시작과 끝을 위한 Easing 함수 적용
+  //       containerElement.scrollTop = start + distance * easeInOutQuad;
+  //       if (elapsed < duration) {
+  //         requestAnimationFrame(step); // 애니메이션이 끝나지 않았으면 다음 프레임 요청
+  //       }
+  //     };
+  //     requestAnimationFrame(step); // 애니메이션 시작
+  //     cellElement.classList.add('highlight-error');
+  //     setTimeout(() => {
+  //       cellElement.classList.remove('highlight-error');
+  //     }, 3000);
+  //   }
+  // };
 
 
   // 초기화(모든 데이터 삭제) 핸들러
@@ -461,7 +541,6 @@ const Transactions = () => {
     }
     if (lastCheckedIndex === -1) { // 선택된 행이 없으면 맨 뒤에 추가
       setTransactions(prev => [...prev, newRow]);
-      setTimeout(() => handleScrollToBottom(), 0);
     } else {
       setTransactions(prev => { // 선택된 행 뒤에 추가
         const newTransactions = [...prev];
@@ -469,6 +548,7 @@ const Transactions = () => {
         return newTransactions;
       });
     }
+    setTimeout(() => scrollToTarget({ type: 'inserted', rowId: newRow.id }), 50);
   };
 
   // handleDeleteSelected 함수를 커스텀 팝업을 사용하도록 수정
@@ -526,33 +606,33 @@ const Transactions = () => {
   };
 
   // 맨 아래로 스크롤 핸들러
-  const handleScrollToBottom = () => {
-    const element = tableContainerRef.current;
-    if (!element) return;
+  // const handleScrollToBottom = () => {
+  //   const element = tableContainerRef.current;
+  //   if (!element) return;
 
-    const duration = 200; // 스크롤 지속 시간 (ms). 이 값을 줄이면 더 빨라집니다.
-    const start = element.scrollTop;
-    const end = element.scrollHeight - element.clientHeight;
-    const distance = end - start;
-    let startTime: number | null = null;
+  //   const duration = 200; // 스크롤 지속 시간 (ms). 이 값을 줄이면 더 빨라집니다.
+  //   const start = element.scrollTop;
+  //   const end = element.scrollHeight - element.clientHeight;
+  //   const distance = end - start;
+  //   let startTime: number | null = null;
 
-    // 애니메이션을 실행하는 함수
-    const step = (timestamp: number) => {
-      if (!startTime) {
-        startTime = timestamp;
-      }
-      const elapsed = timestamp - startTime;
-      const progress = Math.min(elapsed / duration, 1); // 0과 1 사이의 진행률
+  //   // 애니메이션을 실행하는 함수
+  //   const step = (timestamp: number) => {
+  //     if (!startTime) {
+  //       startTime = timestamp;
+  //     }
+  //     const elapsed = timestamp - startTime;
+  //     const progress = Math.min(elapsed / duration, 1); // 0과 1 사이의 진행률
 
-      // 부드러운 시작과 끝을 위한 Easing 함수 적용
-      const easeInOutQuad = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
-      element.scrollTop = start + distance * easeInOutQuad;
-      if (elapsed < duration) {
-        requestAnimationFrame(step); // 애니메이션이 끝나지 않았으면 다음 프레임 요청
-      }
-    };
-    requestAnimationFrame(step); // 애니메이션 시작
-  };
+  //     // 부드러운 시작과 끝을 위한 Easing 함수 적용
+  //     const easeInOutQuad = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+  //     element.scrollTop = start + distance * easeInOutQuad;
+  //     if (elapsed < duration) {
+  //       requestAnimationFrame(step); // 애니메이션이 끝나지 않았으면 다음 프레임 요청
+  //     }
+  //   };
+  //   requestAnimationFrame(step); // 애니메이션 시작
+  // };
 
   // 폼 입력 받는 핸들러
   const handleInsertTransactions = (newTransactions: Partial<Transaction>[]) => {
@@ -583,7 +663,8 @@ const Transactions = () => {
     }) as Transaction[];
     const lastNewId = completeNewTransactions[completeNewTransactions.length - 1].id;
     setTransactions(prev => [...prev, ...completeNewTransactions]);
-    setLastInsertedFromFormId(lastNewId);
+    // setLastInsertedFromFormId(lastNewId);
+    setTimeout(() => scrollToTarget({ type: 'inserted', rowId: lastNewId }), 50);
   };
 
   const handleCloseFormModal = (finalInsertedCount: number) => {
@@ -663,8 +744,10 @@ const Transactions = () => {
       highlight_color_id: 0,
       background_color_id: 0,
     }));
+    const insertedRowIds = newTransactions.map(t => t.id);
     setTransactions(prev => [...prev, ...newTransactions]);
-    setLastInsertedFromFormId(newTransactions[newTransactions.length - 1].id); // 마지막 행으로 스크롤
+    // setLastInsertedFromFormId(newTransactions[newTransactions.length - 1].id); // 마지막 행으로 스크롤
+    setTimeout(() => scrollToTarget({ type: 'inserted', rowId: insertedRowIds }), 50);
   };
   // 내보내기 핸들러
   const handleExportData = async () => {
@@ -1055,7 +1138,9 @@ const Transactions = () => {
       background_color_id: 0,
       type: row.type as Transaction['type'],
     }));
+    const insertedRowIds = newTransactions.map(t => t.id);
     setTransactions(prev => [...prev, ...newTransactions]);
+    setTimeout(() => scrollToTarget({ type: 'inserted', rowId: insertedRowIds }), 50);
     setOcrPreviewOpen(false);
   };
 
@@ -1083,7 +1168,10 @@ const Transactions = () => {
   };
 
   const renderCell = (transaction: Transaction, column: keyof Transaction) => {
+    const cellId = `cell-${transaction.id}-${column}`;
     const isEditing = editingCell?.rowId === transaction.id && editingCell?.column === column;
+
+    // Enter나 ESC키 입력 시 편집 모드 종료 및 값 업데이트
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
         handleUpdateCell(transaction.id, column, e.currentTarget.value);
@@ -1093,124 +1181,103 @@ const Transactions = () => {
       }
     };
 
+    // 편집 모드 렌더링
     if (isEditing) {
       const commonProps = { ref: editingCellRef, autoFocus: true }
+      let editContent: React.ReactNode = null;
+
       switch (column) {
         case 'transaction_date':
-          console.log('rendering date picker for', transaction.id);
-          return (
-            <td className="editing">
-              <DatePicker
-                selected={new Date(transaction.transaction_date)}
-                onChange={(date: Date | null) => {
-                  if (date) {
-                    const y = date.getFullYear();
-                    const m = String(date.getMonth() + 1).padStart(2, '0');
-                    const d = String(date.getDate()).padStart(2, '0');
-                    handleUpdateCell(transaction.id, 'transaction_date', `${y}-${m}-${d}`);
-                    setEditingCell(null); // 날짜 선택 후 바로 편집 모드 종료
-                  }
-                }}
-                dateFormat="yyyy-MM-dd"
-                onCalendarClose={() => setEditingCell(null)}
-                onClickOutside={() => setEditingCell(null)}
-                onBlur={() => setEditingCell(null)}
-                autoFocus={commonProps.autoFocus}
-                className='dp-input'
-                locale={ko}
-                popperClassName='dp-popper'
-                calendarClassName='dp-calendar'
-                showYearDropdown
-                showMonthDropdown
-                dropdownMode='scroll'
-                scrollableYearDropdown
-                yearDropdownItemNumber={10}
-                // minDate={new Date(2020, 0, 1)}
-                // maxDate={new Date(2030, 12, 31)}
-                dayClassName={(date) => {
-                  const d = date;
-                  const formatted = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                  return formatted === transaction.transaction_date ? 'dp-day-selected' : '';
-                }}
-              />
-            </td>
+          // console.log('rendering date picker for', transaction.id);
+          editContent = (
+            <DatePicker
+              selected={new Date(transaction.transaction_date)}
+              onChange={(date: Date | null) => {
+                if (date) {
+                  const y = date.getFullYear();
+                  const m = String(date.getMonth() + 1).padStart(2, '0');
+                  const d = String(date.getDate()).padStart(2, '0');
+                  handleUpdateCell(transaction.id, 'transaction_date', `${y}-${m}-${d}`);
+                  setEditingCell(null); // 날짜 선택 후 바로 편집 모드 종료
+                }
+              }}
+              dateFormat="yyyy-MM-dd"
+              onCalendarClose={() => setEditingCell(null)}
+              onClickOutside={() => setEditingCell(null)}
+              onBlur={() => setEditingCell(null)}
+              autoFocus={commonProps.autoFocus}
+              className='dp-input'
+              locale={ko}
+              popperClassName='dp-popper'
+              calendarClassName='dp-calendar'
+              showYearDropdown
+              showMonthDropdown
+              dropdownMode='scroll'
+              scrollableYearDropdown
+              yearDropdownItemNumber={10}
+              // minDate={new Date(2020, 0, 1)}
+              // maxDate={new Date(2030, 12, 31)}
+              dayClassName={(date) => {
+                const d = date;
+                const formatted = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                return formatted === transaction.transaction_date ? 'dp-day-selected' : '';
+              }}
+            />
           );
+          break;
         case 'account_name':
-          return (
-            <td className="editing">
-              <input {...commonProps} type="text" defaultValue={transaction.account_name ?? ''} onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === 'Escape') setEditingCell(null);
-              }} />
-            </td>
+          editContent = (
+            <input {...commonProps} type="text" defaultValue={transaction.account_name ?? ''} onKeyDown={handleKeyDown}/>
           );
+          break;
         case 'type':
-          return (
-            <td className="editing">
-              <input {...commonProps} type="text" defaultValue={transaction.type} onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === 'Escape') setEditingCell(null);
-              }} />
-            </td>
+          editContent = (
+            <input {...commonProps} type="text" defaultValue={transaction.type} onKeyDown={handleKeyDown}/>
           );
-        case 'major_category_name': {
-          // let availableMajors: CategoryItem[] = [];
-          // if (transaction.type === '수입') { // '수입' 유형일 때는 '고정수입', '유동수입'만 필터링
-          //   availableMajors = appData.categories.filter(c => INCOME_CATEGORIES.includes(c.name));
-          // } else if (transaction.type === '이체') {
-          //   availableMajors = appData.categories.filter(c => c.name === TRANSFER_CATEGORY);
-          // } else if (['고정지출', '반고정지출', '유동지출'].includes(transaction.type)) {
-          //   availableMajors = appData.categories.filter(c => !CORE_CATEGORIES.includes(c.name));
-          // }
-          return (
-            <td className="editing">
-              <input {...commonProps} type="text" defaultValue={transaction.major_category_name ?? ''} onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === 'Escape') setEditingCell(null);
-              }} />
-            </td>
+          break;
+        case 'major_category_name': 
+          editContent = (
+              <input {...commonProps} type="text" defaultValue={transaction.major_category_name ?? ''} onKeyDown={handleKeyDown}/>
+            );
+            break;
+        case 'minor_category_name':
+          editContent = (
+            <input {...commonProps} type="text" defaultValue={transaction.minor_category_name ?? ''} onKeyDown={handleKeyDown}/>
           );
-        }
-        case 'minor_category_name': {
-          // const major = appData.categories.find(c => c.name === transaction.major_category_name);
-          // const availableMinors = major ? major.minors : [];
-          return (
-            <td className="editing">
-              <input {...commonProps} type="text" defaultValue={transaction.minor_category_name ?? ''} onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === 'Escape') setEditingCell(null);
-              }} />
-            </td>
-          );
-        }
+          break;
         case 'amount':
-          return (
-            <td className="editing">
-              <input
-                {...commonProps}
-                type="text" // '+' 기호를 입력받기 위해 text 타입 사용
-                defaultValue={transaction.amount === null ? '' : (transaction.amount > 0 ? `+${transaction.amount}` : transaction.amount)}
-                onKeyDown={handleKeyDown}
-              />
-            </td>
+          editContent = (
+            <input {...commonProps}
+              type="text" // '+' 기호를 입력받기 위해 text 타입 사용
+              defaultValue={transaction.amount === null ? '' : (transaction.amount > 0 ? `+${transaction.amount}` : transaction.amount)}
+              onKeyDown={handleKeyDown}
+            />
           );
+          break;
         default: // 거래처, 메모 등
-          console.log('rendering text input for', transaction.id, column);
-          return (
-            <td className="editing">
-              <input
-                {...commonProps}
-                type="text"
-                defaultValue={transaction[column] as string}
-                onKeyDown={handleKeyDown}
-              />
-            </td>
+          // console.log('rendering text input for', transaction.id, column);
+          editContent = (
+            <input
+              {...commonProps}
+              type="text"
+              defaultValue={transaction[column] as string}
+              onKeyDown={handleKeyDown}
+            />
           );
       }
+      return (
+        <div id={cellId} className="table-cell editing">
+          {editContent}
+        </div>
+      );
     }
 
-    // 편집 모드가 아닐 때 셀 표시
+    // 일반 모드 (편집 모드가 아닐 때)
     const cellValue = transaction[column];
     let displayValue: React.ReactNode = cellValue;
     let className = '';
-    const cellId = `cell-${transaction.id}-${column}`;
 
+    // placeholders
     if (!cellValue && ['account_name', 'major_category_name', 'minor_category_name'].includes(column)) {
       const placeholderText = column === 'account_name' ? '-- 계좌 --' :
         column === 'major_category_name' ? '-- 대분류 --' : '-- 소분류 --';
@@ -1225,24 +1292,34 @@ const Transactions = () => {
       }
     } else if (column === 'merchant') {
       if (cellValue === '') {
-        displayValue = <span className="placeholder">-- 거래처 --</span>;
+      displayValue = <span className="placeholder">-- 거래처 --</span>;
       }
-      const merchantText = displayValue;
+      // merchant 특수 처리: highlight 반영
+      const merchantContent = (
+        transaction.highlight_color_id > 0 ? (
+          <span className={`text-highlight-${transaction.highlight_color_id}`}>
+            {displayValue}
+          </span>
+        ) : (displayValue)
+      );
+
+      const onCellClick = (e: React.MouseEvent) => {
+        setEditingCell({ rowId: transaction.id, column });
+      };
+
       return (
-        <td id={cellId} onClick={() => setEditingCell({ rowId: transaction.id, column })}>
-          {transaction.highlight_color_id > 0 ? (
-            <span className={`text-highlight-${transaction.highlight_color_id}`}>
-              {merchantText}
-            </span>
-          ) : (merchantText)}
-        </td>
+        <div id={cellId} className={`table-cell ${className}`} onClick={onCellClick}>
+          {merchantContent}
+        </div>
       );
     }
 
+    // 클릭 시 편집 모드로 전환 (특정 컬럼은 옵션 선택)
     const onCellClick = (e: React.MouseEvent) => {
       if (['account_name', 'type', 'major_category_name', 'minor_category_name'].includes(String(column))) {
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
         const pos = { top: rect.bottom + window.scrollY + 2, left: rect.left + window.scrollX, width: rect.width };
+        
         // 옵션 생성 및 select open 콜백
         if (column === 'account_name') {
           const opts: Opt[] = appData.accounts.map(a => ({ value: String(a.id), label: a.name }));
@@ -1254,8 +1331,8 @@ const Transactions = () => {
         if (column === 'type') {
           const opts: Opt[] = TRANSACTION_TYPES.map(t => ({ value: t, label: t }));
           floatingSelectRef.current?.open(opts, transaction.type, pos, (v: string) => {
-            handleUpdateCell(transaction.id, 'type', v);
             // major/minor 초기화 handled in handleUpdateCell when type changes
+            handleUpdateCell(transaction.id, 'type', v);
           }, '-- 선택 --');
           return;
         }
@@ -1300,9 +1377,9 @@ const Transactions = () => {
     };
 
     return (
-      <td id={cellId} className={className} onClick={onCellClick}>
+      <div id={cellId} className={`table-cell ${className}`} onClick={onCellClick}>
         {displayValue}
-      </td>
+      </div>
     );
   };
 
@@ -1360,7 +1437,7 @@ const Transactions = () => {
             </button>
             <button onClick={handleDeleteSelected}><FaTrash /> 행 삭제</button>
             <button onClick={handleClearAllFilters}><FaFilter /> 전체 필터 해제</button>
-            <button onClick={handleScrollToBottom}><FaAngleDoubleDown /> 맨 아래로</button>
+            <button onClick={() => scrollToTarget({ type: 'bottom' })}><FaAngleDoubleDown /> 맨 아래로</button>
             <div className="divider"></div>
             <button onClick={handleApplyBold} disabled={!hasCheckedRows} title="굵게"><FaBold /></button>
             <button onClick={(e) => handleOpenColorPopup(e, 'flag')} disabled={!hasCheckedRows} title="플래그"><FaFlag /></button>
@@ -1374,47 +1451,42 @@ const Transactions = () => {
 
           {/* 거래내역 테이블 */}
           <div className="table-container" ref={tableContainerRef}>
-            <table className='table-transaction'>
-              <thead>
-                <tr>
-                  {/* TODO: 각 헤더에 필터 버튼 추가 */}
-                  <th>
+            <div className='table-transaction'>
+              <div className='table-header'>
+                <div className='table-row'>
+                  <div className='table-cell checkbox-cell' onClick={() => handleToggleCheckAll({ target: { checked: !processedTransactions.every(t => checkedRows.has(t.id)) } } as any)}>
                     <input
                       type="checkbox"
                       onChange={handleToggleCheckAll}
-                      // 보이는 행이 모두 체크되었을 때만 '전체 선택' 체크박스 활성화
                       checked={processedTransactions.length > 0 && processedTransactions.every(t => checkedRows.has(t.id))}
                     />
-                  </th>
-                  {renderHeader('transaction_date', '날짜')}
-                  {renderHeader('account_name', '계좌')}
-                  {renderHeader('type', '유형')}
-                  {renderHeader('major_category_name', '대분류')}
-                  {renderHeader('minor_category_name', '소분류')}
-                  {renderHeader('amount', '금액')}
-                  {renderHeader('merchant', '거래처')}
-                  {renderHeader('memo', '메모')}
-                </tr>
-              </thead>
-              <tbody>
+                  </div>
+                  {(['transaction_date', 'account_name', 'type', 'major_category_name', 'minor_category_name', 'amount', 'merchant', 'memo'] as const).map(col => (
+                    <div key={col} className='table-cell header-cell'>
+                      {renderHeader(col, col === 'transaction_date' ? '날짜' : col === 'account_name' ? '계좌' : col === 'type' ? '유형' : col === 'major_category_name' ? '대분류' : col === 'minor_category_name' ? '소분류' : col === 'amount' ? '금액' : col === 'merchant' ? '거래처' : '메모')}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className='table-body'>
                 {processedTransactions.map((transaction) => {
-                  // 3가지 스타일 클래스를 모두 조합
                   const classNames = [
                     transaction.is_bold ? 'bold-row' : '',
                     transaction.flag_color_id > 0 ? `flag-${transaction.flag_color_id}` : '',
                     transaction.highlight_color_id > 0 ? `highlight-${transaction.highlight_color_id}` : '',
                     transaction.background_color_id > 0 ? `bg-${transaction.background_color_id}` : '',
-                  ].filter(Boolean).join(' '); // 빈 문자열을 제거하고 공백으로 합침
+                  ].filter(Boolean).join(' ');
 
                   return (
-                    <tr key={transaction.id} id={`row-${transaction.id}`} className={classNames.trim()}>
-                      <td>
+                    <div key={transaction.id} id={`row-${transaction.id}`} className={`table-row ${classNames.trim()}`}>
+                      <div className='table-cell checkbox-cell' onClick={() => handleToggleCheck(transaction.id)}>
                         <input
                           type="checkbox"
                           checked={checkedRows.has(transaction.id)}
-                          onChange={() => handleToggleCheck(transaction.id)}
+                          onChange={() => {}}
                         />
-                      </td>
+                      </div>
                       {renderCell(transaction, 'transaction_date')}
                       {renderCell(transaction, 'account_name')}
                       {renderCell(transaction, 'type')}
@@ -1423,11 +1495,11 @@ const Transactions = () => {
                       {renderCell(transaction, 'amount')}
                       {renderCell(transaction, 'merchant')}
                       {renderCell(transaction, 'memo')}
-                    </tr>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
+              </div>
+            </div>
           </div>
           {/* OCR 모달 */}
           <OcrImageUploadModal

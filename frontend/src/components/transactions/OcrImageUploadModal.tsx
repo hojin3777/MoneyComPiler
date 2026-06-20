@@ -39,7 +39,7 @@ const OcrImageUploadModal: React.FC<OcrImageUploadModalProps> = ({ isOpen, onClo
       setPopupStyle({
         position: 'absolute',
         top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX,
+        left: rect.left + window.scrollX - 135,
         zIndex: 2000,
       });
     }
