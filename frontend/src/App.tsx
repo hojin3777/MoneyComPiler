@@ -145,7 +145,7 @@ const App = () => {
           // 네트워크 준비 전에는 조용히 재시도합니다.
         }
 
-        await new Promise(resolve => setTimeout(resolve, 900));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         elapsedSeconds++;
         setRetryCount(elapsedSeconds);
         console.log(`Backend not ready yet (${elapsedSeconds}s)...`);
