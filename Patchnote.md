@@ -2,11 +2,10 @@
 <details>
 <summary>TODO</summary>
 
-
 - TODO: 데모 DB 넣기
+- TODO: 자동 매핑 추가에 되돌리기 버튼 추가
 - TODO: 가이드 작성(AI가 프론트읽고 가능한가?)
 - TODO: 윈도우 버전 탑재용 파이썬 추가 필요(CPU/CUDA용 분기도 필요할듯?)
-- TODO: 자동 매핑 추가에 되돌리기 버튼 추가
 
 - TODO: 윈도우 버전 torch 라이브러리 왜이렇게 큰지 보기
 - TODO: apple developer 등록 무료?
