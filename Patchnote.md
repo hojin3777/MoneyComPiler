@@ -3,7 +3,6 @@
 <summary>TODO</summary>
 
 - TODO: 데모 DB 넣기
-- TODO: 자동 매핑 추가에 되돌리기 버튼 추가
 - TODO: 가이드 작성(AI가 프론트읽고 가능한가?)
 - TODO: 윈도우 버전 탑재용 파이썬 추가 필요(CPU/CUDA용 분기도 필요할듯?)
 
@@ -19,6 +18,16 @@
 </details>
 
 ## 2026년
+
+### 0623
+- TODO: 자동 매핑 추가에 되돌리기 버튼 추가
+    - 백엔드에 삭제 API 신설 후 되돌리기 버튼으로 undo 구현
+    - OcrPreviewTableModal의 알림 표시 timeout 및 애니메이션 타이밍, 깜빡이는 문제 해결
+- CSS 수정
+    - OcrPreviewTableModal 각 열 너비 비율 고정
+    - 금액 및 날짜 편집 시 인라인 편집 적용
+    - 거래내역 및 ocr 팝업 금액 인라인 편집 시 우측 정렬
+
 
 ### 0620
 - TODO: 맥버전 시간 잘 재지나 확인 필요

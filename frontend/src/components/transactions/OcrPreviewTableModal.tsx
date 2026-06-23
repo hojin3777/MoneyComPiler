@@ -31,6 +31,14 @@ type HighlightCell = {
   column: keyof TransactionRow;
   type: 'error' | 'sync';
 };
+// 룰베이스 undo용 정보 추적
+type NotificationData = {
+  message: string;
+  type: NotificationType;
+  ruleType?: 'ocr-correction' | 'rule-based-mapping';
+  merchantName?: string;
+  minorCategoryUuid?: string | null;
+}
 
 export type TransactionRow = {
   id: string;
@@ -69,7 +77,7 @@ const OcrPreviewTableModal: React.FC<OcrPreviewTableModalProps> = ({
   const [editedRows, setEditedRows] = useState<TransactionRow[]>([]);
   const [editingCell, setEditingCell] = useState<{ rowId: string; column: keyof TransactionRow } | null>(null);
   const [highlightCell, setHighlightCell] = useState<HighlightCell[]>([]);
-  const [notification, setNotification] = useState<{ message: string; type: NotificationType } | null>(null);
+  const [notification, setNotification] = useState<NotificationData | null>(null);
   const [imagePreview, setImagePreview] = useState<ImagePreviewState | null>(null);
   const [selectedDutchSources, setSelectedDutchSources] = useState<string[]>([]); // 더치페이 원본 행 ID 목록
   const [checkedOcrRows, setCheckedOcrRows] = useState<Set<string>>(new Set()); // OCR 선택된 행 ID 목록
@@ -77,6 +85,16 @@ const OcrPreviewTableModal: React.FC<OcrPreviewTableModalProps> = ({
   const editingCellRef = useRef<HTMLInputElement>(null);
   const floatingSelectRef = useRef<FloatingSelectHandle | null>(null);
   const modalBodyRef = useRef<HTMLDivElement>(null);
+  const notificationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 컴포넌트 언마운트 시 타임아웃 정리
+  useEffect(() => {
+    return () => {
+      if (notificationTimeoutRef.current) {
+        clearTimeout(notificationTimeoutRef.current);
+      }
+    }
+  }, []);
 
   // ******************** 백엔드에서 데이터 로드 및 자동 보정 규칙 관련 핸들러 ********************
   useEffect(() => {
@@ -123,9 +141,14 @@ const OcrPreviewTableModal: React.FC<OcrPreviewTableModalProps> = ({
   }, [open, rows, appData.categories]);
 
   // 4. 자동 규칙 생성 및 알림 표시
-  const showNotification = (message: string, type: NotificationType) => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 5000);
+  const showNotification = (message: string, type: NotificationType, ruleData?: { ruleType: 'ocr-correction' | 'rule-based-mapping', merchantName?: string, minorCategoryUuid?: string|null }) => {
+    if (notificationTimeoutRef.current) clearTimeout(notificationTimeoutRef.current); // 이전 timeout 정리하고
+    setNotification({ message, type, ...ruleData });  // 새로운 알림 설정
+    const duration = type === 'error' ? 3000 : 5000; // 에러는 3초, 정보는 5초
+    notificationTimeoutRef.current = setTimeout(() => {
+      setNotification(null);
+      notificationTimeoutRef.current = null;
+    }, duration);
   };
 
   // 셀 값 변경 핸들러 (Transactions.tsx와 거의 동일)
@@ -158,7 +181,7 @@ const OcrPreviewTableModal: React.FC<OcrPreviewTableModalProps> = ({
         updatedRow.account_name = acc ? acc.name : null;
       }
 
-      // 기존 로직
+      // 유형, 대분류, 소분류 편집 시 자동 보정 규칙 생성
       if (column === 'type' || column === 'major_category_name') {
         if (column === 'type') updatedRow.major_category_name = null;
         updatedRow.minor_category_uuid = null;
@@ -175,7 +198,9 @@ const OcrPreviewTableModal: React.FC<OcrPreviewTableModalProps> = ({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ merchant_name: updatedRow.merchant, minor_category_uuid: updatedRow.minor_category_uuid }),
               });
-              showNotification(`룰베이스 매핑 추가:     ${updatedRow.merchant}     →     ${major.name}-${minor.name}    `, 'info');
+              showNotification(`룰베이스 매핑 추가:     ${updatedRow.merchant}     →     ${major.name}-${minor.name}    `,
+                'info',
+              { ruleType: 'rule-based-mapping', merchantName: updatedRow.merchant, minorCategoryUuid: updatedRow.minor_category_uuid });
             }
             break;
           }
@@ -187,7 +212,9 @@ const OcrPreviewTableModal: React.FC<OcrPreviewTableModalProps> = ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ original_text: oldRow.original_merchant, corrected_text: updatedRow.merchant }),
           });
-          showNotification(`OCR 보정 규칙 추가:     ${oldRow.original_merchant}     →     ${updatedRow.merchant}    `, 'info');
+          showNotification(`OCR 보정 규칙 추가:     ${oldRow.original_merchant}     →     ${updatedRow.merchant}    `,
+            'info',
+          { ruleType: 'ocr-correction', merchantName: updatedRow.merchant });
         }
       } else if (column === 'amount') {
         const strValue = String(value);
@@ -198,6 +225,28 @@ const OcrPreviewTableModal: React.FC<OcrPreviewTableModalProps> = ({
       newRows[rowIndex] = updatedRow;
       return newRows;
     });
+  };
+
+  // 규칙 삭제 핸들러
+  const handleUndoRule = async () => {
+    if (!notification) return;
+    try {
+      if (notification.ruleType === 'ocr-correction') {
+        // OCR 보정 규칙 삭제
+        await fetch(`${API_BASE_URL}/api/ocr-corrections/${notification.merchantName}`, {
+          method: 'DELETE',
+        });
+      } else if (notification.ruleType === 'rule-based-mapping') {
+        // 룰베이스 매핑 규칙 삭제
+        await fetch(`${API_BASE_URL}/api/rule-based-mappings/${notification.merchantName}`, {
+          method: 'DELETE',
+        });
+      }
+      showNotification('규칙이 삭제되었습니다.', 'error');
+    } catch (error) {
+      console.error('규칙 삭제 실패:', error);
+      showNotification('규칙 삭제에 실패했습니다. 매핑 메뉴에서 시도해주세요.', 'error');
+    }
   };
 
   // ESC로 편집 종료
@@ -366,173 +415,6 @@ const OcrPreviewTableModal: React.FC<OcrPreviewTableModalProps> = ({
   };
 
 
-
-
-
-  // 정산기능때문에 function으로 이동
-  // ******************** 셀 렌더링 및 편집 관련 ********************
-  // 렌더링 로직 (Transactions.tsx와 유사하게)
-  // const renderCell = (row: TransactionRow, column: keyof TransactionRow) => {
-  //   const cellId = `ocr-cell-${row.id}-${column}`;
-  //   if (column === 'file_name') {
-  //     return (
-  //       <td
-  //         id={cellId}
-  //         className='filename-cell'
-  //         onClick={(e) => {
-  //           if (row.file_name) {
-  //             const rect = e.currentTarget.getBoundingClientRect();
-
-  //             // 1. 팝업 위치 계산 로직 수정
-  //             const POPUP_WIDTH = 400; // CSS의 max-width
-  //             const MARGIN = 15;
-  //             const windowHeight = window.innerHeight;
-
-  //             // 수평 위치: 항상 셀의 왼쪽에 위치하도록 고정
-  //             let left = rect.left - POPUP_WIDTH - MARGIN;
-
-  //             // 화면 왼쪽 경계를 벗어날 경우, 화면 왼쪽에 붙임
-  //             if (left < MARGIN) {
-  //               left = MARGIN;
-  //             }
-
-  //             // 1. 수직 위치: 셀의 상단에 맞추되, 화면 하단을 벗어나지 않도록만 보정
-  //             let top = rect.top;
-
-  //             // 팝업의 최대 높이를 대략적으로 추정 (70vh)
-  //             const estimatedPopupHeight = windowHeight * 0.95;
-
-  //             // 화면 하단 경계 보정: 팝업이 화면을 벗어날 경우, 그만큼 위로 올림
-  //             if (top + estimatedPopupHeight > windowHeight - MARGIN) {
-  //               top = windowHeight - estimatedPopupHeight - MARGIN;
-  //             }
-
-  //             // 화면 상단 경계 보정
-  //             if (top < MARGIN) {
-  //               top = MARGIN;
-  //             }
-
-  //             setImagePreview({
-  //               url: `${OCR_IMAGE_BASE_URL}/${row.file_name}`,
-  //               top: top,
-  //               left: left,
-  //               filename: row.file_name
-  //             });
-  //           }
-  //         }}
-  //       >
-  //         {row.file_name}
-  //       </td>
-  //     );
-  //   }
-
-  //   const isEditing = editingCell?.rowId === row.id && editingCell?.column === column;
-
-  //   if (isEditing) {
-  //     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  //       if (e.key === 'Enter') {
-  //         handleCellChange(row.id, column, e.currentTarget.value);
-  //         setEditingCell(null);
-  //       } else if (e.key === 'Escape') {
-  //         setEditingCell(null);
-  //       }
-  //     };
-
-  //     if (column === 'transaction_date') {
-  //       return (
-  //         <td className="editing">
-  //           <DatePicker
-  //             selected={new Date(row.transaction_date)}
-  //             onChange={(date: Date | null) => {
-  //               if (date) handleCellChange(row.id, 'transaction_date', date.toISOString().split('T')[0]);
-  //               setEditingCell(null);
-  //             }}
-  //             dateFormat="yyyy-MM-dd"
-  //             onCalendarClose={() => setEditingCell(null)}
-  //             onClickOutside={() => setEditingCell(null)}
-  //             autoFocus
-  //             popperClassName='dp-popper'
-  //             calendarClassName='dp-calendar'
-  //             portalId='root'
-  //           />
-  //         </td>
-  //       );
-  //     }
-  //     return (
-  //       <td className="editing">
-  //         <input
-  //           ref={editingCellRef}
-  //           defaultValue={row[column] as string ?? ''}
-  //           onKeyDown={handleKeyDown}
-  //           onBlur={(e) => {
-  //             handleCellChange(row.id, column, e.currentTarget.value);
-  //             setEditingCell(null);
-  //           }}
-  //           autoFocus
-  //         />
-  //       </td>
-  //     );
-  //   }
-
-
-  //   // 기본 셀 표시
-  //   const onCellClick = (e: React.MouseEvent) => {
-  //     const target = e.currentTarget as HTMLElement;
-  //     const rect = target.getBoundingClientRect();
-  //     const pos = { top: rect.bottom + 2, left: rect.left, width: rect.width };
-
-  //     if (['account_name', 'type', 'major_category_name', 'minor_category_name'].includes(column)) {
-  //       // FloatingSelectPopup 로직
-  //       if (column === 'account_name') {
-  //         const opts: Opt[] = appData.accounts.map(a => ({ value: String(a.id), label: a.name }));
-  //         floatingSelectRef.current?.open(opts, String(row.account_id ?? ''), pos, (v) => handleCellChange(row.id, 'account_id', v === '' ? null : Number(v)), '-- 계좌 --');
-  //       } else if (column === 'type') {
-  //         const opts: Opt[] = TRANSACTION_TYPES.map(t => ({ value: t, label: t }));
-  //         floatingSelectRef.current?.open(opts, row.type, pos, (v) => handleCellChange(row.id, 'type', v), '-- 유형 --');
-  //       } else if (column === 'major_category_name') {
-  //         const INCOME_CATEGORIES = ['고정수입', '유동수입'];
-  //         const TRANSFER_CATEGORY = '이체분류';
-  //         const CORE_CATEGORIES = [...INCOME_CATEGORIES, TRANSFER_CATEGORY];
-  //         let availableMajors: CategoryItem[] = [];
-  //         if (row.type === '수입') availableMajors = appData.categories.filter(c => INCOME_CATEGORIES.includes(c.name));
-  //         else if (row.type === '이체') availableMajors = appData.categories.filter(c => c.name === TRANSFER_CATEGORY);
-  //         else availableMajors = appData.categories.filter(c => !CORE_CATEGORIES.includes(c.name));
-
-  //         const opts: Opt[] = availableMajors.map(m => ({ value: m.name, label: m.name }));
-  //         floatingSelectRef.current?.open(opts, row.major_category_name ?? '', pos, (v) => handleCellChange(row.id, 'major_category_name', v), '-- 대분류 --');
-  //       } else if (column === 'minor_category_name') {
-  //         const major = appData.categories.find(c => c.name === row.major_category_name);
-  //         const opts: Opt[] = (major?.minors ?? []).map(m => ({ value: m.uuid, label: m.name }));
-  //         floatingSelectRef.current?.open(opts, row.minor_category_uuid ?? '', pos, (v) => handleCellChange(row.id, 'minor_category_uuid', v === '' ? null : v), '-- 소분류 --');
-  //       }
-  //     } else {
-  //       // 일반 텍스트/숫자 편집
-  //       setEditingCell({ rowId: row.id, column });
-  //     }
-  //   };
-
-  //   let displayValue: React.ReactNode = row[column];
-  //   let className = '';
-  //   const highlightInfo = highlightCell.find(cell => cell.rowId === row.id && cell.column === column);
-
-  //   if (highlightInfo) {
-  //     // 에러 하이라이트(배열에 1개)와 동기화 하이라이트(배열에 여러개) 구분
-  //     className = highlightCell.length === 1 ? 'highlight-error' : 'highlight-sync';
-  //   }
-
-  //   if (column === 'transaction_date') {
-  //     className = 'align-center'; // 3. 날짜 셀 중앙 정렬
-  //   } else if (column === 'amount') {
-  //     className = `align-right ${row.amount! >= 0 ? 'amount-income' : 'amount-expense'}`;
-  //     displayValue = row.amount?.toLocaleString() ?? <span className="placeholder">-- 금액 --</span>;
-  //   } else if (!row[column] && ['account_name', 'major_category_name', 'minor_category_name', 'merchant'].includes(column)) {
-  //     displayValue = <span className="placeholder">-- {column.split('_')[0]} --</span>;
-  //   }
-
-  //   return <td id={cellId} className={className} onClick={onCellClick}>{displayValue}</td>;
-  // };
-
-
   if (!open) return null;
   return (
     <>
@@ -627,7 +509,16 @@ const OcrPreviewTableModal: React.FC<OcrPreviewTableModalProps> = ({
           <div className="ocr-preview-footer">
             {notification && (
               <div className={`ocr-preview-notification ${notification.type}`}>
-                {notification.message}
+                <span>{notification.message}</span>
+                {notification.ruleType && (
+                  <span
+                    className="notification-undo-link"
+                    onClick={handleUndoRule}
+                    title="undo"
+                  >
+                    되돌리기  
+                  </span>
+                )}
               </div>
             )}
             <div style={{ flex: 1 }}></div>

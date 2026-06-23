@@ -322,3 +322,32 @@ def add_rule_based_mapping(merchant_name, minor_category_uuid):
         raise e
     finally:
         conn.close()
+
+
+def delete_ocr_correction(merchant_name: str):
+    """OCR 보정 규칙 삭제"""
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM ocr_corrections WHERE original_text = ?", (merchant_name,))
+        conn.commit()
+        return {"status": "success", "message": "OCR correction deleted."}
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
+def delete_rule_based_mapping(merchant_name: str):
+    """상호명 기반 매핑 규칙 삭제"""
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM rule_based_mappings WHERE merchant_name = ?", (merchant_name,))
+        conn.commit()
+        return {"status": "success", "message": "Rule-based mapping deleted."}
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()

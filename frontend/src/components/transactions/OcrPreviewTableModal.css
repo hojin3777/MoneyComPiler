@@ -19,7 +19,7 @@
   border: 1.5px solid var(--color-border);
   box-shadow: 0 8px 32px var(--color-bg-overlay-light);
   width: 90vw;
-  max-width: 1200px;
+  max-width: 100%;
   min-height: 320px;
   max-height: 80vh;
   padding: 24px;
@@ -105,6 +105,7 @@
 .ocr-preview-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .ocr-preview-table th,
@@ -114,10 +115,69 @@
   border-right: 1px solid var(--color-border);
   white-space: nowrap;
   font-size: 0.95em;
-  text-align: left;
-  /* 3. 모든 셀 기본 좌측 정렬 */
+  text-align: left; /* 모든 셀 기본 좌측 정렬 */
+  overflow: hidden;
 }
 
+/* 열 너비 비율 정의 */
+.ocr-preview-table th:nth-child(1),
+.ocr-preview-table td:nth-child(1) {
+  width: 5%; /* 체크박스 */
+}
+
+.ocr-preview-table th:nth-child(2),
+.ocr-preview-table td:nth-child(2) {
+  width: 12%; /* 파일명 */
+}
+
+.ocr-preview-table th:nth-child(3),
+.ocr-preview-table td:nth-child(3) {
+  width: 10%; /* 날짜 */
+}
+
+.ocr-preview-table th:nth-child(4),
+.ocr-preview-table td:nth-child(4) {
+  width: 12%; /* 계좌 */
+}
+
+.ocr-preview-table th:nth-child(5),
+.ocr-preview-table td:nth-child(5) {
+  width: 8%; /* 유형 */
+}
+
+.ocr-preview-table th:nth-child(6),
+.ocr-preview-table td:nth-child(6) {
+  width: 12%; /* 대분류 */
+}
+
+.ocr-preview-table th:nth-child(7),
+.ocr-preview-table td:nth-child(7) {
+  width: 12%; /* 소분류 */
+}
+
+.ocr-preview-table th:nth-child(8),
+.ocr-preview-table td:nth-child(8) {
+  width: 10%; /* 금액 */
+}
+
+.ocr-preview-table th:nth-child(9),
+.ocr-preview-table td:nth-child(9) {
+  width: 14%; /* 거래처 */
+}
+
+.ocr-preview-table th:nth-child(10),
+.ocr-preview-table td:nth-child(10) {
+  width: 3%; /* 정산 입금 */
+  padding: 0;
+}
+
+.ocr-preview-table th:nth-child(11),
+.ocr-preview-table td:nth-child(11) {
+  width: 3%; /* 정산 대상 */
+  padding: 0;
+}
+
+/* 마지막 열 테두리 제거 및 헤더 고정 */
 .ocr-preview-table th:last-child,
 .ocr-preview-table td:last-child {
   border-right: none;
@@ -129,13 +189,11 @@
 
 .ocr-preview-table th {
   background-color: var(--color-bg-header);
-  /* 2. 변수 수정: --color-bg-content -> --color-bg-header */
   font-weight: 600;
   position: sticky;
   top: 0;
   z-index: 10;
   text-align: center;
-  /* 3. 헤더만 중앙 정렬 */
 }
 
 /* 3. 특정 열 정렬 재정의 */
@@ -146,6 +204,39 @@
 .ocr-preview-table td.align-right,
 .ocr-preview-table th.align-right {
   text-align: right;
+}
+
+/* ====== 편집 모드 스타일 (Transactions.css와 동일) ====== */
+.ocr-preview-table td.editing {
+  position: relative;
+  padding: 0;
+}
+
+.ocr-preview-table td:nth-child(8).editing input{
+  text-align: right;
+}
+
+.ocr-preview-table td.editing input,
+.ocr-preview-table td.editing .react-datepicker-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  padding: 0 8px;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-bg-content);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.ocr-preview-table td.editing input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg-overlay-light);
+  border: 2px solid var(--color-border-interactive);
 }
 
 /* 1. 파일명 셀 스타일 추가 */
@@ -219,12 +310,29 @@
   border-radius: 6px;
   font-size: 0.9em;
   font-weight: 500;
-  animation: fadeInOut 4s ease-in-out;
   display: flex;
   /* 내부 텍스트 중앙 정렬을 위해 */
   align-items: center;
   justify-content: center;
   white-space: pre-wrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-undo-link {
+  color: var(--color-highlight-5);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 2px 4px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.notification-undo-link:hover {
+  color: var(--color-highlight-5-transparent7)
 }
 
 .ocr-preview-notification.info {
@@ -246,6 +354,16 @@
   90% {
     opacity: 1;
   }
+}
+
+/* info type: 5초 */
+.ocr-preview-notification.info {
+  animation: fadeInOut 5s ease-in-out forwards;
+}
+
+/* error type: 3초 */
+.ocr-preview-notification.error {
+  animation: fadeInOut 3s ease-in-out forwards;
 }
 
 .ocr-preview-footer .primary.ocr-preview-insert-btn {

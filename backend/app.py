@@ -938,6 +938,26 @@ def manage_rule_based_mappings():
             return jsonify({'message': 'Rule-based mapping added/updated successfully'}), 201
         except Exception as e:
             return jsonify({'error': str(e)}), 500
+        
+@app.route('/api/ocr-corrections/<original_text>', methods=['DELETE'])
+def delete_ocr_correction(original_text):
+    """OCR 보정 규칙 삭제"""
+    try:
+        result = mapping_utils.delete_ocr_correction(original_text)
+        return jsonify(result), 200
+    except Exception as e:
+        print(f"Error deleting OCR correction: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/rule-based-mappings/<merchant_name>', methods=['DELETE'])
+def delete_rule_based_mapping(merchant_name):
+    """상호명 기반 매핑 규칙 삭제"""
+    try:
+        result = mapping_utils.delete_rule_based_mapping(merchant_name)
+        return jsonify(result), 200
+    except Exception as e:
+        print(f"Error deleting rule-based mapping: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 

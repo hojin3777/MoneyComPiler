@@ -166,6 +166,15 @@
   padding: 0;
 }
 
+/* 금액 셀 편집 모드에서 입력 필드 우측 정렬 */
+.table-body .table-row > .table-cell:nth-child(7).editing {
+  justify-content: flex-end;
+}
+
+.table-body .table-row > .table-cell:nth-child(7).editing input {
+  text-align: right;
+}
+
 .table-cell.editing input,
 .table-cell.editing select,
 .table-cell.editing .react-datepicker-wrapper {
