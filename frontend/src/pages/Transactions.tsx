@@ -98,12 +98,18 @@ const Transactions = () => {
   const [activeStyleType, setActiveStyleType] = useState<'flag' | 'highlight' | 'background' | null>(null);
 
   // 스크롤 type
-  type ScrollTargetType = 'bottom' | 'error' | 'inserted';
-  interface ScrollTarget {
-    type: ScrollTargetType;
-    rowId?: number | string | (number | string)[];    // error, inserted 만 사용
-    column?: keyof Transaction; // error 만 사용
-  }
+  type ScrollTarget =
+  | { type: 'bottom' }
+  | { type: 'error'; rowId: number | string; column: keyof Transaction }
+  | { type: 'inserted'; rowId: number | string };
+  const scrollTargetSeqRef = useRef(0);
+
+  // 가상화 관련 state
+  const ROW_HEIGHT = 36;
+  const BUFFER_ROWS = 15;
+  const [renderStart, setRenderStart] = useState(0);
+  const [renderEnd, setRenderEnd] = useState(BUFFER_ROWS * 2);
+  const tableBodyRef = useRef<HTMLDivElement>(null); // body 내 스크롤 감지용
 
   // OCR 이미지 업로드 모달 관련 state
   const [ocrModalOpen, setOcrModalOpen] = useState(false);
@@ -216,21 +222,6 @@ const Transactions = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
-  // ******* 폼 새 행 추가 이벤트 처리 *******
-  // useEffect(() => {
-  //   if (lastInsertedFromFormId) {
-  //     const rowElement = document.getElementById(`row-${lastInsertedFromFormId}`);
-  //     if (rowElement) {
-  //       rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  //       rowElement.classList.add('highlight-new');
-  //       setTimeout(() => {
-  //         rowElement.classList.remove('highlight-new');
-  //       }, 3000);
-  //     }
-  //     setLastInsertedFromFormId(null);
-  //   }
-  // }, [lastInsertedFromFormId]);
-
   // ******* 단축키 저장 이벤트 *******
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -325,7 +316,6 @@ const Transactions = () => {
         title: '미입력 항목 경고',
         message: '필수 입력 항목이 비어 있어 저장할수 없습니다.\n비어있는 항목을 채우거나 빈 행을 삭제해 주세요.',
         onConfirm: () => {
-          // scrollToAndHighlightCell(emptyCellFound);
           scrollToTarget({ type: 'error', rowId: emptyCellFound!.rowId, column: emptyCellFound!.column });
           setConfirmPopup(prev => ({ ...prev, isOpen: false }));
         },
@@ -374,109 +364,6 @@ const Transactions = () => {
     }
   };
 
-  // 통합 스크롤 함수
-  const scrollToTarget = (target: ScrollTarget) => {
-    const container = tableContainerRef.current;
-    if (!container) return;
-
-    let endPosition: number;
-    let highlightElement: HTMLElement[] = [];
-    let highlightClass = '';
-    let duration = 200; // 스크롤 지속 시간 (ms), 기본 200
-
-    switch (target.type) {
-      case 'bottom':
-        endPosition = container.scrollHeight - container.clientHeight;
-        break;
-      case 'error':
-        const cellId = `cell-${target.rowId}-${target.column}`;
-        const errorElement = document.getElementById(cellId);
-        if (!errorElement) return;
-        endPosition = errorElement.offsetTop - (container.clientHeight / 2) + (errorElement.clientHeight / 2);
-        highlightElement = [errorElement];
-        highlightClass = 'highlight-error';
-        break;
-      case 'inserted':
-        const rowIds = Array.isArray(target.rowId) ? target.rowId : [target.rowId];
-        if (!rowIds || rowIds.length === 0) return;
-
-        highlightElement = [];
-        for(const id of rowIds){
-          const rowElement = document.getElementById(`row-${id}`);
-          if(rowElement) highlightElement.push(rowElement);
-        }
-        if (highlightElement.length === 0) return;
-
-        if(highlightElement.length === 1){
-          endPosition = highlightElement[0].offsetTop - (container.clientHeight / 2) + (highlightElement[0].clientHeight / 2);
-        } else {
-          endPosition = container.scrollHeight - container.clientHeight; // 맨 아래로
-        }
-        highlightClass = 'highlight-new';
-        duration = 300; // 새 행 스크롤은 조금 더 길게
-        break;
-    }
-
-    
-    const start = container.scrollTop;
-    const distance = endPosition - start;
-    let startTime: number | null = null;
-
-    const step = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easeInOutQuad = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
-      container.scrollTop = start + distance * easeInOutQuad;
-      if (elapsed < duration) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-
-    if (highlightElement.length > 0) {
-    setTimeout(() => {
-      highlightElement.forEach(element => {
-        element.classList.add(highlightClass);
-        setTimeout(() => {
-          element.classList.remove(highlightClass);
-        }, 3000);
-      });
-    }, 50);
-  }
-  };
-
-  // 빈 셀 스크롤
-  // const scrollToAndHighlightCell = (cellinfo: { rowId: number | string; column: keyof Transaction }) => {
-  //   const cellId = `cell-${cellinfo.rowId}-${cellinfo.column}`;
-  //   const cellElement = document.getElementById(cellId);
-  //   const containerElement = tableContainerRef.current;
-  //   if (cellElement && containerElement) {
-  //     // element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  //     const duration = 200; // 스크롤 지속 시간 (ms). 이 값을 줄이면 더 빨라집니다.
-  //     const start = containerElement.scrollTop;
-  //     const end = cellElement.offsetTop - (containerElement.clientHeight / 2) + (cellElement.clientHeight / 2);
-  //     const distance = end - start;
-  //     let startTime: number | null = null;
-  //     // 애니메이션을 실행하는 함수
-  //     const step = (timestamp: number) => {
-  //       if (!startTime) {
-  //         startTime = timestamp;
-  //       }
-  //       const elapsed = timestamp - startTime;
-  //       const progress = Math.min(elapsed / duration, 1); // 0과 1 사이의 진행률
-  //       const easeInOutQuad = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress; // 부드러운 시작과 끝을 위한 Easing 함수 적용
-  //       containerElement.scrollTop = start + distance * easeInOutQuad;
-  //       if (elapsed < duration) {
-  //         requestAnimationFrame(step); // 애니메이션이 끝나지 않았으면 다음 프레임 요청
-  //       }
-  //     };
-  //     requestAnimationFrame(step); // 애니메이션 시작
-  //     cellElement.classList.add('highlight-error');
-  //     setTimeout(() => {
-  //       cellElement.classList.remove('highlight-error');
-  //     }, 3000);
-  //   }
-  // };
-
 
   // 초기화(모든 데이터 삭제) 핸들러
   const handleReset = () => {
@@ -490,6 +377,7 @@ const Transactions = () => {
         setStatus('Resetting...');
         setTransactions([]);
         setIsDirty(true);
+        // 기존 삭제 방식에서 state만 초기화하도록 변경
         // try {
         //   const response = await fetch(`${API_BASE_URL}/api/transactions/reset`, { method: 'POST' });
         //   if (!response.ok) throw new Error('Reset failed.');
@@ -605,35 +493,6 @@ const Transactions = () => {
     setColorPopupOpen(true);
   };
 
-  // 맨 아래로 스크롤 핸들러
-  // const handleScrollToBottom = () => {
-  //   const element = tableContainerRef.current;
-  //   if (!element) return;
-
-  //   const duration = 200; // 스크롤 지속 시간 (ms). 이 값을 줄이면 더 빨라집니다.
-  //   const start = element.scrollTop;
-  //   const end = element.scrollHeight - element.clientHeight;
-  //   const distance = end - start;
-  //   let startTime: number | null = null;
-
-  //   // 애니메이션을 실행하는 함수
-  //   const step = (timestamp: number) => {
-  //     if (!startTime) {
-  //       startTime = timestamp;
-  //     }
-  //     const elapsed = timestamp - startTime;
-  //     const progress = Math.min(elapsed / duration, 1); // 0과 1 사이의 진행률
-
-  //     // 부드러운 시작과 끝을 위한 Easing 함수 적용
-  //     const easeInOutQuad = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
-  //     element.scrollTop = start + distance * easeInOutQuad;
-  //     if (elapsed < duration) {
-  //       requestAnimationFrame(step); // 애니메이션이 끝나지 않았으면 다음 프레임 요청
-  //     }
-  //   };
-  //   requestAnimationFrame(step); // 애니메이션 시작
-  // };
-
   // 폼 입력 받는 핸들러
   const handleInsertTransactions = (newTransactions: Partial<Transaction>[]) => {
     const completeNewTransactions = newTransactions.map(t => {
@@ -745,9 +604,11 @@ const Transactions = () => {
       background_color_id: 0,
     }));
     const insertedRowIds = newTransactions.map(t => t.id);
+    const lastInsertedRowId = insertedRowIds[insertedRowIds.length - 1];
     setTransactions(prev => [...prev, ...newTransactions]);
-    // setLastInsertedFromFormId(newTransactions[newTransactions.length - 1].id); // 마지막 행으로 스크롤
-    setTimeout(() => scrollToTarget({ type: 'inserted', rowId: insertedRowIds }), 50);
+    if (lastInsertedRowId != null) {
+      setTimeout(() => scrollToTarget({ type: 'inserted', rowId: lastInsertedRowId }), 50);
+    }
   };
   // 내보내기 핸들러
   const handleExportData = async () => {
@@ -1139,13 +1000,142 @@ const Transactions = () => {
       type: row.type as Transaction['type'],
     }));
     const insertedRowIds = newTransactions.map(t => t.id);
+    const lastInsertedRowId = insertedRowIds[insertedRowIds.length - 1];
     setTransactions(prev => [...prev, ...newTransactions]);
-    setTimeout(() => scrollToTarget({ type: 'inserted', rowId: insertedRowIds }), 50);
+    if (lastInsertedRowId != null) {
+      setTimeout(() => scrollToTarget({ type: 'inserted', rowId: lastInsertedRowId }), 50);
+    }
     setOcrPreviewOpen(false);
   };
 
 
+  // ******* 가상화 관련 핸들러 *******
+  const handleTableBodyScroll = () => {
+    const container = tableContainerRef.current;
+    if (!container) return;
 
+    if(editingCell) setEditingCell(null);
+
+    const scrollTop = container.scrollTop;
+    const viewportHeight = container.clientHeight;
+
+    let start = Math.floor(scrollTop / ROW_HEIGHT) - BUFFER_ROWS;
+    let end = Math.ceil((scrollTop + viewportHeight) / ROW_HEIGHT) + BUFFER_ROWS;
+
+    start = Math.max(0, start);
+    end = Math.min(processedTransactions.length, end);
+
+    setRenderStart(start);
+    setRenderEnd(end);
+  };
+
+  // ******* 가상화 스크롤 이벤트 *******
+  useEffect(() => {
+    handleTableBodyScroll(); // 초기 렌더링 시 스크롤 위치 계산
+  }, [processedTransactions.length]);
+
+
+  // 통합 스크롤 함수
+  const animateScrollTop = (
+    container: HTMLDivElement,
+    targetTop: number,
+    duration = 250
+  ) => {
+    return new Promise<void>((resolve) => {
+      const startTop = container.scrollTop;
+      const distance = targetTop - startTop;
+      let startTime: number | null = null;
+
+      const step = (timestamp: number) => {
+        if (startTime === null) startTime = timestamp;
+
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased =
+          progress < 0.5
+            ? 2 * progress * progress
+            : -1 + (4 - 2 * progress) * progress;
+
+        container.scrollTop = startTop + distance * eased;
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          resolve();
+        }
+      };
+
+      requestAnimationFrame(step);
+    });
+  };
+
+  const scrollToTarget = async (target: ScrollTarget) => {
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    if (target.type === 'bottom') {
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      const bottomTop = Math.max(0, container.scrollHeight - container.clientHeight);
+      await animateScrollTop(container, bottomTop, 250);
+      return;
+    }
+
+    const targetIndex = processedTransactions.findIndex(t => t.id === target.rowId);
+    if (targetIndex === -1) return;
+
+    const nextStart = Math.max(0, targetIndex - BUFFER_ROWS);
+    const nextEnd = Math.min(
+      processedTransactions.length,
+      targetIndex + BUFFER_ROWS + 1
+    );
+
+    const currentSeq = ++scrollTargetSeqRef.current;
+
+    setRenderStart(nextStart);
+    setRenderEnd(nextEnd);
+
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+    if (scrollTargetSeqRef.current !== currentSeq) return;
+
+    const nextContainer = tableContainerRef.current;
+    if (!nextContainer) return;
+
+    const targetTop = targetIndex * ROW_HEIGHT;
+    const centeredTop =
+      targetTop - (nextContainer.clientHeight / 2) + (ROW_HEIGHT / 2);
+    const maxTop = Math.max(0, nextContainer.scrollHeight - nextContainer.clientHeight);
+
+    await animateScrollTop(
+      nextContainer,
+      Math.max(0, Math.min(centeredTop, maxTop)),
+      target.type === 'inserted' ? 300 : 220
+    );
+
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+    if (scrollTargetSeqRef.current !== currentSeq) return;
+
+    if (target.type === 'error') {
+      const cellElement = document.getElementById(`cell-${target.rowId}-${target.column}`);
+      if (cellElement) {
+        cellElement.classList.add('highlight-error');
+        setTimeout(() => {
+          cellElement.classList.remove('highlight-error');
+        }, 3000);
+      }
+      return;
+    }
+
+    const rowElement = document.getElementById(`row-${target.rowId}`);
+    if (rowElement) {
+      rowElement.classList.add('highlight-new');
+      setTimeout(() => {
+        rowElement.classList.remove('highlight-new');
+      }, 3000);
+    }
+  };
 
   // ******* 렌더링 헬퍼 함수 *******
   const renderHeader = (columnKey: keyof Transaction, title: string) => {
@@ -1153,17 +1143,15 @@ const Transactions = () => {
     const sortDirection = sortConfig?.key === columnKey ? sortConfig.direction : null;
 
     return (
-      <th>
-        <div
-          className={`th-content ${isFiltered ? 'filtered' : ''}`}
-          onClick={(e) => handleHeaderClick(e, columnKey, title)}
-        >
-          <span>{title}</span>
-          {sortDirection === 'asc' && <FaArrowUp className="sort-icon asc" />}
-          {sortDirection === 'desc' && <FaArrowDown className="sort-icon desc" />}
-          {!sortDirection && <FaCaretDown className="sort-icon" />}
-        </div>
-      </th>
+      <div
+        className={`th-content ${isFiltered ? 'filtered' : ''}`}
+        onClick={(e) => handleHeaderClick(e, columnKey, title)}
+      >
+        <span>{title}</span>
+        {sortDirection === 'asc' && <FaArrowUp className="sort-icon asc" />}
+        {sortDirection === 'desc' && <FaArrowDown className="sort-icon desc" />}
+        {!sortDirection && <FaCaretDown className="sort-icon" />}
+      </div>
     );
   };
 
@@ -1450,7 +1438,7 @@ const Transactions = () => {
           </div>
 
           {/* 거래내역 테이블 */}
-          <div className="table-container" ref={tableContainerRef}>
+          <div className="table-container" ref={tableContainerRef} onScroll={handleTableBodyScroll}>
             <div className='table-transaction'>
               <div className='table-header'>
                 <div className='table-row'>
@@ -1470,7 +1458,9 @@ const Transactions = () => {
               </div>
 
               <div className='table-body'>
-                {processedTransactions.map((transaction) => {
+                <div style={{ height: renderStart * ROW_HEIGHT, flex: 'none' }}/>{/* 상단 오프셋 */}
+
+                {processedTransactions.slice(renderStart, renderEnd).map((transaction) => {
                   const classNames = [
                     transaction.is_bold ? 'bold-row' : '',
                     transaction.flag_color_id > 0 ? `flag-${transaction.flag_color_id}` : '',
@@ -1498,6 +1488,7 @@ const Transactions = () => {
                     </div>
                   );
                 })}
+                <div style={{ height: (processedTransactions.length - renderEnd) * ROW_HEIGHT, flex: 'none' }}/>{/* 하단 오프셋 */}
               </div>
             </div>
           </div>

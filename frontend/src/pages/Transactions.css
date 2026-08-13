@@ -89,7 +89,7 @@
 }
 
 .table-body {
-  flex-grow: 1;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
