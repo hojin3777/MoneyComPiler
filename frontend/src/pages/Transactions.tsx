@@ -4,7 +4,8 @@ import {
   FaBold, FaHighlighter, FaFlag, FaFillDrip,
   FaCaretDown, FaArrowUp, FaArrowDown, FaFilter,
   FaPlus, FaArrowRight, FaAngleDoubleDown,
-  FaFileDownload, FaFileExport, FaFileImport
+  FaFileDownload, FaFileExport, FaFileImport,
+  FaTimes
 } from 'react-icons/fa'; // 각 아이콘 로드
 import { RiFileExcel2Fill } from 'react-icons/ri';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -1491,7 +1492,13 @@ const Transactions = () => {
               {hasCheckedRows ? ' 행 삽입' : ' 행 추가'}
             </button>
             <button onClick={handleDeleteSelected}><FaTrash /> 행 삭제</button>
-            <button onClick={handleClearAllFilters}><FaFilter /> 전체 필터 해제</button>
+            <button onClick={handleClearAllFilters}>
+              <span className="filter-clear-icon-wrap">
+                <FaFilter className='filter-clear-main-icon'/>
+                <FaTimes className='filter-clear-x-icon'/>
+              </span>
+              전체 필터 해제
+            </button>
             <button onClick={() => scrollToTarget({ type: 'bottom' })}><FaAngleDoubleDown /> 맨 아래로</button>
             <div className="divider"></div>
             <button onClick={handleApplyBold} disabled={!hasCheckedRows} title="굵게"><FaBold /></button>
