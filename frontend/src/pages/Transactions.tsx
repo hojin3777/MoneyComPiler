@@ -101,12 +101,12 @@ const Transactions = () => {
   type ScrollTarget =
   | { type: 'bottom' }
   | { type: 'error'; rowId: number | string; column: keyof Transaction }
-  | { type: 'inserted'; rowId: number | string };
+  | { type: 'inserted'; rowIds: Array<number | string>; targetIndex: number };
   const scrollTargetSeqRef = useRef(0);
 
   // 가상화 관련 state
-  const ROW_HEIGHT = 36;
-  const BUFFER_ROWS = 15;
+  const ROW_HEIGHT = 36; // 표시 행 높이
+  const BUFFER_ROWS = 100; // 스크롤 버퍼 행 수
   const [renderStart, setRenderStart] = useState(0);
   const [renderEnd, setRenderEnd] = useState(BUFFER_ROWS * 2);
   const tableBodyRef = useRef<HTMLDivElement>(null); // body 내 스크롤 감지용
@@ -274,10 +274,7 @@ const Transactions = () => {
       setCheckedRows(new Set());
       setStatus('Loaded successfully');
       setTimeout(() => setStatus(''), 3000);
-      setTimeout(() => {
-        // handleScrollToBottom();
-        scrollToTarget({ type: 'bottom' });
-      }, 200); // 데이터 로딩 후 약간의 지연을 두고 스크롤
+      setTimeout(() => {scrollToTarget({ type: 'bottom' });}, 200); // 데이터 로딩 후 약간의 지연을 두고 스크롤
     } catch (error) {
       console.error("Data loading failed:", error);
       setStatus("Data loading failed");
@@ -427,6 +424,9 @@ const Transactions = () => {
         }
       }
     }
+
+    const insertIndex = lastCheckedIndex === -1 ? transactions.length : lastCheckedIndex + 1;
+
     if (lastCheckedIndex === -1) { // 선택된 행이 없으면 맨 뒤에 추가
       setTransactions(prev => [...prev, newRow]);
     } else {
@@ -436,7 +436,7 @@ const Transactions = () => {
         return newTransactions;
       });
     }
-    setTimeout(() => scrollToTarget({ type: 'inserted', rowId: newRow.id }), 50);
+    setTimeout(() => scrollToTarget({ type: 'inserted', rowIds: [newRow.id], targetIndex: insertIndex }), 50);
   };
 
   // handleDeleteSelected 함수를 커스텀 팝업을 사용하도록 수정
@@ -521,9 +521,9 @@ const Transactions = () => {
       };
     }) as Transaction[];
     const lastNewId = completeNewTransactions[completeNewTransactions.length - 1].id;
+    const targetIndex = transactions.length + completeNewTransactions.length - 1;
     setTransactions(prev => [...prev, ...completeNewTransactions]);
-    // setLastInsertedFromFormId(lastNewId);
-    setTimeout(() => scrollToTarget({ type: 'inserted', rowId: lastNewId }), 50);
+    setTimeout(() => scrollToTarget({ type: 'inserted', rowIds: [lastNewId], targetIndex }), 50);
   };
 
   const handleCloseFormModal = (finalInsertedCount: number) => {
@@ -605,9 +605,10 @@ const Transactions = () => {
     }));
     const insertedRowIds = newTransactions.map(t => t.id);
     const lastInsertedRowId = insertedRowIds[insertedRowIds.length - 1];
+    const targetIndex = transactions.length + newTransactions.length - 1;
     setTransactions(prev => [...prev, ...newTransactions]);
     if (lastInsertedRowId != null) {
-      setTimeout(() => scrollToTarget({ type: 'inserted', rowId: lastInsertedRowId }), 50);
+      setTimeout(() => scrollToTarget({ type: 'inserted', rowIds: insertedRowIds, targetIndex }), 50);
     }
   };
   // 내보내기 핸들러
@@ -692,6 +693,8 @@ const Transactions = () => {
     );
   };
 
+
+
   // ******* 체크박스 관련 핸들러 *******
   // 개별 행 체크박스 토글 핸들러
   const handleToggleCheck = (rowId: number | string) => {
@@ -718,6 +721,8 @@ const Transactions = () => {
       setCheckedRows(new Set());
     };
   };
+
+
 
 
   // ******* 필터/정렬 관련 핸들러 *******
@@ -775,6 +780,9 @@ const Transactions = () => {
     setPopupPosition({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX });
     setActiveFilter({ column: columnKey, name: title });
   };
+
+
+
 
 
   // ******* 딥러닝 자동입력 관련 핸들러 *******
@@ -1001,12 +1009,16 @@ const Transactions = () => {
     }));
     const insertedRowIds = newTransactions.map(t => t.id);
     const lastInsertedRowId = insertedRowIds[insertedRowIds.length - 1];
+    const targetIndex = transactions.length + newTransactions.length - 1;
     setTransactions(prev => [...prev, ...newTransactions]);
     if (lastInsertedRowId != null) {
-      setTimeout(() => scrollToTarget({ type: 'inserted', rowId: lastInsertedRowId }), 50);
+      setTimeout(() => scrollToTarget({ type: 'inserted', rowIds: insertedRowIds, targetIndex }), 50);
     }
     setOcrPreviewOpen(false);
   };
+
+
+
 
 
   // ******* 가상화 관련 핸들러 *******
@@ -1035,7 +1047,7 @@ const Transactions = () => {
   }, [processedTransactions.length]);
 
 
-  // 통합 스크롤 함수
+  // 통합 스크롤 애니메이션
   const animateScrollTop = (
     container: HTMLDivElement,
     targetTop: number,
@@ -1069,34 +1081,37 @@ const Transactions = () => {
     });
   };
 
-  const scrollToTarget = async (target: ScrollTarget) => {
+  const waitForNextPaint = () =>
+  new Promise<void>(resolve => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolve());
+    });
+  });
+  
+  const scrollToBottom = async () => {
     const container = tableContainerRef.current;
     if (!container) return;
 
-    if (target.type === 'bottom') {
-      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-      const bottomTop = Math.max(0, container.scrollHeight - container.clientHeight);
-      await animateScrollTop(container, bottomTop, 250);
-      return;
-    }
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    const bottomTop = Math.max(0, container.scrollHeight - container.clientHeight);
+    await animateScrollTop(container, bottomTop, 250);
+  };
 
-    const targetIndex = processedTransactions.findIndex(t => t.id === target.rowId);
+  const scrollToError = async (rowId: number | string, column: keyof Transaction) => {
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    const targetIndex = processedTransactions.findIndex(t => t.id === rowId);
     if (targetIndex === -1) return;
 
     const nextStart = Math.max(0, targetIndex - BUFFER_ROWS);
-    const nextEnd = Math.min(
-      processedTransactions.length,
-      targetIndex + BUFFER_ROWS + 1
-    );
-
+    const nextEnd = Math.min(processedTransactions.length, targetIndex + BUFFER_ROWS + 1);
     const currentSeq = ++scrollTargetSeqRef.current;
 
     setRenderStart(nextStart);
     setRenderEnd(nextEnd);
 
-    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-
+    await waitForNextPaint();
     if (scrollTargetSeqRef.current !== currentSeq) return;
 
     const nextContainer = tableContainerRef.current;
@@ -1110,31 +1125,83 @@ const Transactions = () => {
     await animateScrollTop(
       nextContainer,
       Math.max(0, Math.min(centeredTop, maxTop)),
-      target.type === 'inserted' ? 300 : 220
+      220
     );
 
-    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-
+    await waitForNextPaint();
     if (scrollTargetSeqRef.current !== currentSeq) return;
 
-    if (target.type === 'error') {
-      const cellElement = document.getElementById(`cell-${target.rowId}-${target.column}`);
-      if (cellElement) {
-        cellElement.classList.add('highlight-error');
-        setTimeout(() => {
-          cellElement.classList.remove('highlight-error');
-        }, 3000);
+    const cellElement = document.getElementById(`cell-${rowId}-${column}`);
+    if (cellElement) {
+      cellElement.classList.add('highlight-error');
+      setTimeout(() => {
+        cellElement.classList.remove('highlight-error');
+      }, 3000);
+    }
+  };
+
+  const scrollToInserted = async (rowIds: Array<number | string>, targetIndex: number) => {
+    const container = tableContainerRef.current;
+    if (!container || rowIds.length === 0) return;
+    if (targetIndex < 0) return;
+
+    const currentSeq = ++scrollTargetSeqRef.current;
+
+    const nextStart = Math.max(0, targetIndex - BUFFER_ROWS);
+    const nextEnd = targetIndex + BUFFER_ROWS + 1; // 의도적으로 clamp 안 함(다음 렌더에서 자연 정리)
+
+    setRenderStart(nextStart);
+    setRenderEnd(nextEnd);
+
+    await waitForNextPaint();
+    if (scrollTargetSeqRef.current !== currentSeq) return;
+
+    const nextContainer = tableContainerRef.current;
+    if (!nextContainer) return;
+
+    const targetTop = targetIndex * ROW_HEIGHT;
+    const centeredTop =
+      targetTop - (nextContainer.clientHeight / 2) + (ROW_HEIGHT / 2);
+    const maxTop = Math.max(0, nextContainer.scrollHeight - nextContainer.clientHeight);
+
+    await animateScrollTop(
+      nextContainer,
+      Math.max(0, Math.min(centeredTop, maxTop)),
+      300
+    );
+
+    await waitForNextPaint();
+    if (scrollTargetSeqRef.current !== currentSeq) return;
+
+    const tryHighlight = (rowId: number | string, retries = 3) => {
+      const rowElement = document.getElementById(`row-${rowId}`);
+      if (rowElement) {
+        rowElement.classList.add('highlight-new');
+        setTimeout(() => rowElement.classList.remove('highlight-new'), 3000);
+        return;
       }
+      if (retries > 0) {
+        requestAnimationFrame(() => tryHighlight(rowId, retries - 1));
+      }
+    };
+
+    for (const rowId of rowIds) {
+      tryHighlight(rowId);
+    }
+  };
+
+  const scrollToTarget = async (target: ScrollTarget) => {
+    if (target.type === 'bottom') {
+      await scrollToBottom();
       return;
     }
 
-    const rowElement = document.getElementById(`row-${target.rowId}`);
-    if (rowElement) {
-      rowElement.classList.add('highlight-new');
-      setTimeout(() => {
-        rowElement.classList.remove('highlight-new');
-      }, 3000);
+    if (target.type === 'error') {
+      await scrollToError(target.rowId, target.column);
+      return;
     }
+
+    await scrollToInserted(target.rowIds, target.targetIndex);
   };
 
   // ******* 렌더링 헬퍼 함수 *******

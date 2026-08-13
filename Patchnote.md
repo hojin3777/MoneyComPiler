@@ -2,6 +2,11 @@
 <details>
 <summary>TODO</summary>
 
+
+- TODO: Form에서도 (숨김) 또는 (exp)인 경우 표시하지 않기, 카테고리 메뉴에 툴팁 추가하기
+- TODO: OCR모달 폼에 device status 추가하기 (CPU/MPS/GPU)
+- TODO: 필터링 메뉴 정렬 순서 categories 메뉴와 통일(가능한가?)
+
 - TODO: 데모 DB 넣기
 - TODO: 가이드 작성(AI가 프론트읽고 가능한가?)
 - TODO: 윈도우 버전 탑재용 파이썬 추가 필요(CPU/CUDA용 분기도 필요할듯?)
@@ -18,6 +23,13 @@
 </details>
 
 ## 2026년
+
+### 0813
+- 가상화 적용
+    - 테이블 div element 가상화 적용하여 버퍼 내의 항목만 렌더하도록 변경
+    - 가상화에 맞춰 스크롤/하이라이트 로직 재정의(기존 통합 리팩토링 다시 분리)
+    - error type, inserted type의 경우 index 기반 위치 참조 스크롤로 계산하도록 변경
+        - inserted type은 targetIndex 추가하여 맨 아래 or 행 삽입 위치 전달하도록 변경
 
 ### 0623
 - TODO: 자동 매핑 추가에 되돌리기 버튼 추가
